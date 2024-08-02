@@ -121,7 +121,12 @@ usage_error () {
 LCL_PID=$$
 CONDA_BUILD_DIR="./conda"
 COMPILER=""
+<<<<<<< HEAD
 BUILD_JOBS=4
+=======
+BUILD_JOBS=1
+REMOVE=false
+>>>>>>> 68ecacd (options to complete the stochastic physics build within MPAS from the mpas_app build script)
 CONTINUE=false
 VERBOSE=false
 ATMOS_ONLY=false
