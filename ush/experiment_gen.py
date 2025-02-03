@@ -10,6 +10,7 @@ from pathlib import Path
 from shutil import copy
 from subprocess import STDOUT, CalledProcessError, check_output
 from typing import Optional
+from pprint import pprint
 
 import uwtools.api.config as uwconfig
 import uwtools.api.rocoto as uwrocoto
@@ -45,6 +46,8 @@ def main(user_config_files: list[Path, str]) -> None:
     """
 
     # Set up the experiment
+    # mpas_app is the base directory of the MPAS App clone on the local
+    # platform.
     mpas_app = Path(os.path.dirname(__file__)).parent.absolute()
     experiment_config = uwconfig.get_yaml_config(Path("./default_config.yaml"))
     user_config = None
@@ -54,6 +57,15 @@ def main(user_config_files: list[Path, str]) -> None:
             user_config = cfg
             continue
         user_config.update_values(cfg)
+    print(f'')
+    print(f'AAAAAAAAAA')
+    print(f'{mpas_app = }')
+    print(f'{user_config_files = }')
+    print(f'')
+    #print(f'{user_config = }')
+    print(f'user_config = ')
+    pprint(user_config)
+#    ijijijij
 
     machine = user_config["user"]["platform"]
     platform_config = uwconfig.get_yaml_config(mpas_app / "parm" / "machines" / f"{machine}.yaml")
@@ -67,6 +79,26 @@ def main(user_config_files: list[Path, str]) -> None:
     experiment_path = Path(experiment_config["user"]["experiment_dir"])
     print("Experiment will be set up here: {}".format(experiment_path))
     os.makedirs(experiment_path, exist_ok=True)
+
+    # Get the name of the experiment from the name of the last user config file.
+    last_config_file = str(user_config_files[-1])
+    start_str = 'config.'
+    end_str = '.yaml'
+    start_index = last_config_file.find(start_str) + len(start_str)
+    end_index = last_config_file.find(end_str, start_index)
+    expt_name = last_config_file[start_index:end_index]
+    print(f'')
+    print(f'BBBBBBBBBBBBB')
+    print(f'{last_config_file = }')
+    print(f'{expt_name = }')
+
+    experiment_path = Path(os.path.join(mpas_app, '..', 'expt_dirs', expt_name)).absolute()
+    experiment_config["user"]["experiment_dir"] = str(experiment_path)
+    print(f'')
+    print(f'CCCCCCCCCCCCCC')
+    print(f'{experiment_path = }')
+    print(f'{experiment_config["user"]["experiment_dir"] = }')
+    #hhhhhhhhhhh
 
     experiment_file = experiment_path / "experiment.yaml"
 
