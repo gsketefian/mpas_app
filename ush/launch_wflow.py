@@ -186,7 +186,7 @@ def main():
     #-----------------------------------------------------------------------
     #
     # For debugging:
-    wflow_status = 'SUCCESS'
+    #wflow_status = 'SUCCESS'
     if wflow_status in ['SUCCESS', 'FAILURE']:
 
         msg = dedent(f"""
