@@ -15,6 +15,13 @@ data:
 platform:
   scheduler: slurm
 
+cron:
+  use_cron_to_relaunch: False
+  cron_relaunch_intvl_mnts: 5
+  wflow_launch_script_fn: 'launch_wflow.py'
+  wflow_launch_wrapper_script_fn: 'launch_wflow_wrapper.sh'
+  wflow_launch_log_fn: 'log.launch_wflow'
+
 get_ics_data:
   execution:
     cores: 1
