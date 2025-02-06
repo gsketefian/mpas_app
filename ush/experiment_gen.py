@@ -68,11 +68,6 @@ def main(user_config_files: list[Path, str]) -> None:
 
     experiment_config["user"]["mpas_app"] = mpas_app.as_posix()
 
-    # Build the experiment directory
-    experiment_path = Path(experiment_config["user"]["experiment_dir"])
-    print("Experiment will be set up here: {}".format(experiment_path))
-    os.makedirs(experiment_path, exist_ok=True)
-
     # Get the name of the experiment from the name of the last user config file.
     last_config_file = str(user_config_files[-1])
     start_str = 'config.'
@@ -86,7 +81,57 @@ def main(user_config_files: list[Path, str]) -> None:
     experiment_path = Path(os.path.abspath(experiment_path))
     experiment_config["user"]["experiment_dir"] = str(experiment_path)
 
-    experiment_file = experiment_path / Path("experiment.yaml")
+    # Build the experiment directory
+    experiment_path = Path(experiment_config["user"]["experiment_dir"])
+    print("Experiment will be set up here: {}".format(experiment_path))
+    os.makedirs(experiment_path, exist_ok=True)
+    # Get configuration parameters associated with launching the workflow.
+    wflow_launch_config = experiment_config["wflow_launch"]
+    wflow_launch_script_fn = wflow_launch_config["launch_script_fn"]
+    wflow_launch_wrapper_fn = wflow_launch_config["launch_wrapper_fn"]
+
+    # Copy the workflow launch script and wrapper script that runs it from
+    # the MPAS App clone into the experiment directory.    
+    wflow_launch_script_fp = mpas_app / 'ush' / wflow_launch_script_fn
+    copy(wflow_launch_script_fp, experiment_path / wflow_launch_script_fn)
+    wflow_launch_wrapper_fp = mpas_app / 'ush' / wflow_launch_wrapper_fn
+    copy(wflow_launch_wrapper_fp, experiment_path / wflow_launch_wrapper_fn)
+    #
+    # -----------------------------------------------------------------------
+    #
+    # If use_cron_to_relaunch is set to True, add a line to the user's cron
+    # table to call the (re)launch script every cron_relaunch_intvl_mnts
+    # minutes.
+    #
+    # -----------------------------------------------------------------------
+    #
+    # Get cron configuration.
+    cron_config = experiment_config["cron"]
+    use_cron_to_relaunch = cron_config["use_cron_to_relaunch"]
+
+    if use_cron_to_relaunch:
+
+        cron_relaunch_intvl_mnts = cron_config["cron_relaunch_intvl_mnts"]
+        wflow_launch_log_fn = wflow_launch_config["launch_log_fn"]
+        platform = experiment_config["user"]["platform"]
+
+        crontab_line = (
+            f"""*/{cron_relaunch_intvl_mnts} * * * * """
+            f"""cd {experiment_path} && """
+            f"""./{wflow_launch_wrapper_fn} >> ./{wflow_launch_log_fn} 2>&1"""
+        )
+
+        experiment_config["cron"]["crontab_line"] = crontab_line
+
+        print(f'')
+        print(f"Will include the following cron job in the user's cron table:")
+        print(f'{crontab_line = }')
+
+        add_crontab_line(called_from_cron=False, machine=platform,
+                         crontab_line=crontab_line,
+                         exptdir=experiment_path, debug=False)
+
+
 
     # Load the workflow definition
     workflow_blocks = experiment_config["user"]["workflow_blocks"]
@@ -100,6 +145,7 @@ def main(user_config_files: list[Path, str]) -> None:
             workflow_config.update_values(uwconfig.get_yaml_config(workflow_block))
     workflow_config.update_values(experiment_config)
 
+    experiment_file = experiment_path / Path("experiment.yaml")
     uwconfig.realize(
         input_config=workflow_config,
         output_file=experiment_file,
@@ -132,52 +178,6 @@ def main(user_config_files: list[Path, str]) -> None:
         if not (experiment_path / f"{mesh_file_path.name}.part.{nprocs}").is_file():
             print(f"Creating grid file for {nprocs} procs")
             create_grid_files(experiment_path, mesh_file_path, nprocs)
-
-    # Get cron configuration.
-    cron_config = experiment_config["cron"]
-    launch_script_fn = cron_config["wflow_launch_script_fn"]
-    wflow_launch_wrapper_script_fn = cron_config["wflow_launch_wrapper_script_fn"]
-
-    # Copy the launch script from the MPAS App clone into the experiment directory.    
-    launch_script_fp = mpas_app / 'ush' / launch_script_fn
-    copy(launch_script_fp, experiment_path / launch_script_fn)
-
-    # Copy the launch script wrapper from the MPAS App clone into the experiment directory.    
-    launch_script_fp = mpas_app / 'ush' / wflow_launch_wrapper_script_fn
-    copy(launch_script_fp, experiment_path / wflow_launch_wrapper_script_fn)
-    #
-    # -----------------------------------------------------------------------
-    #
-    # If use_cron_to_relaunch is set to True, add a line to the user's cron
-    # table to call the (re)launch script every cron_relaunch_intvl_mnts
-    # minutes.
-    #
-    # -----------------------------------------------------------------------
-    #
-    use_cron_to_relaunch = cron_config["use_cron_to_relaunch"]
-    # pylint: disable=undefined-variable
-    if use_cron_to_relaunch:
-
-        intvl_mnts = cron_config["cron_relaunch_intvl_mnts"]
-        launch_log_fn = cron_config["wflow_launch_log_fn"]
-        platform = experiment_config["user"]["platform"]
-
-        crontab_line = (
-            f"""*/{intvl_mnts} * * * * """
-            f"""cd {experiment_path} && """
-            f"""./{wflow_launch_wrapper_script_fn} >> ./{launch_log_fn} 2>&1"""
-        )
-
-        print(f'')
-        print(f"Will include the following cron job in the user's cron table:")
-        print(f'{crontab_line = }')
-
-        add_crontab_line(called_from_cron=False, machine=platform,
-                         crontab_line=crontab_line,
-                         exptdir=experiment_path, debug=False)
-
-
-
 
 
 if __name__ == "__main__":

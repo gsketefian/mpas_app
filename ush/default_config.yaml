@@ -15,12 +15,15 @@ data:
 platform:
   scheduler: slurm
 
+wflow_launch:
+  launch_script_fn: 'launch_wflow.py'
+  launch_wrapper_fn: 'launch_wflow_wrapper.sh'
+  launch_log_fn: 'log.launch_wflow'
+
 cron:
   use_cron_to_relaunch: False
   cron_relaunch_intvl_mnts: 5
-  wflow_launch_script_fn: 'launch_wflow.py'
-  wflow_launch_wrapper_script_fn: 'launch_wflow_wrapper.sh'
-  wflow_launch_log_fn: 'log.launch_wflow'
+  crontab_line: None
 
 get_ics_data:
   execution:
