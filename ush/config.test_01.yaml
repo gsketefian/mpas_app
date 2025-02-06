@@ -1,0 +1,21 @@
+user:
+  #experiment_dir: /scratch2/BMC/fv3lam/Gerard.Ketefian/mpas_stuff_modify_with_stoch/expt_dirs/test_01
+  # The experiment directory will be set by the experiment generation script
+  # using the name of the config file it is passed and the directory in which
+  # it (the generation script) is located.  Thus, it can be left unspecified
+  # here.
+  #experiment_dir: ''
+  platform: hera
+
+data:
+  mesh_files: /scratch2/BMC/fv3lam/mayfield/mpas_stoch/meshes/15km-conus
+
+platform:
+  account: fv3lam
+
+cron:
+  use_cron_to_relaunch: True
+  cron_relaunch_intvl_mnts: 1
+#  #wflow_launch_script_fn: 'launch_wflow.sh'
+#  #wflow_launch_log_fn: 'log.launch_wflow'
+
