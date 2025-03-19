@@ -77,12 +77,13 @@ workflow:
           cyclestr:
             value: "@Y-@m-@dT@H:@M:@S"
       dependency:
-        taskdep:
-          attrs:
-            task: get_ics_data
-        taskdep:
-          attrs:
-            task: get_lbcs_data
+        and:
+          taskdep_get_ics_data:
+            attrs:
+              task: get_ics_data
+          taskdep_get_lbcs_data:
+            attrs:
+              task: get_lbcs_data
     task_mpas_ics: &mpas_init_task
       command: 'source &MPAS_APP;/load_wflow_modules.sh &PLATFORM; ; python &MPAS_APP;/scripts/mpas_init.py'
       account: "{{ platform.account }}"
