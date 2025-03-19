@@ -1,6 +1,6 @@
 user:
   cycle_frequency: 12
-  experiment_dir: ""
+  experiment_dir: ''
   first_cycle: !!timestamp 2023-09-15T00:00:00
   last_cycle:  !!timestamp 2023-09-15T00:00:00
   mesh_label: conus
@@ -14,6 +14,7 @@ data:
 
 platform:
   scheduler: slurm
+  account: my_account
 
 wflow_launch:
   launch_script_fn: 'launch_wflow.py'
