@@ -29,6 +29,8 @@ get_ics_data:
   execution:
     cores: 1
     walltime: 00:10:00
+    native: ''
+    maxtries: 1
   external_model: GFS
   rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/{{ get_ics_data.external_model }}'
 
@@ -36,6 +38,8 @@ get_lbcs_data:
   execution:
     cores: 1
     walltime: 00:20:00
+    native: ''
+    maxtries: 1
   external_model: GFS
   rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/{{ get_lbcs_data.external_model }}'
 
@@ -45,6 +49,8 @@ prepare_grib:
       batchargs:
         cores: 1
         walltime: 00:15:00
+        native: ''
+        maxtries: 1
       envcmds:
         - source {{ user.mpas_app }}/load_wflow_modules.sh {{ user.platform }}
         - conda activate ungrib
@@ -71,6 +77,8 @@ create_ics:
       batchargs:
         cores: 12
         walltime: 01:30:00
+        native: ''
+        maxtries: 1
       envcmds:
         - ulimit -s unlimited || true
         - module use {{ user.mpas_app }}/modulefiles
@@ -183,6 +191,8 @@ forecast:
       batchargs:
         cores: 32
         walltime: 01:30:00
+        native: ''
+        maxtries: 1
       envcmds:
         - ulimit -s unlimited || true
         - module use {{ user.mpas_app }}/modulefiles

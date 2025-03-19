@@ -23,6 +23,9 @@ workflow:
           value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H.log'
       walltime: "{{ get_ics_data['execution']['walltime']}}"
       cores: !int "{{ get_ics_data['execution']['cores']}}"
+      native: "{{ get_ics_data['execution']['native'] }}"
+      attrs:
+        maxtries: "{{ get_ics_data['execution']['maxtries'] }}"
       envars:
         YYYYMMDDHH:
           cyclestr:
@@ -42,6 +45,9 @@ workflow:
           value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H.log'
       walltime: "{{ get_lbcs_data['execution']['walltime']}}"
       cores: !int "{{ get_lbcs_data['execution']['cores']}}"
+      native: "{{ get_lbcs_data['execution']['native'] }}"
+      attrs:
+        maxtries: "{{ get_lbcs_data['execution']['maxtries'] }}"
       envars:
         YYYYMMDDHH:
           cyclestr:
@@ -62,6 +68,9 @@ workflow:
           value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H.log'
       walltime: "{{ prepare_grib.ungrib['execution']['batchargs']['walltime']}}"
       cores: !int "{{ prepare_grib.ungrib['execution']['batchargs']['cores']}}"
+      native: "{{ prepare_grib.ungrib['execution']['batchargs']['native'] }}"
+      attrs:
+        maxtries: "{{ prepare_grib.ungrib['execution']['batchargs']['maxtries'] }}"
       envars:
         CONFIG_PATH: '&EXPERIMENT_CONFIG;'
         CYCLE:
@@ -82,6 +91,9 @@ workflow:
           value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H.log'
       walltime: "{{ create_ics.mpas_init['execution']['batchargs']['walltime']}}"
       cores: !int "{{ create_ics.mpas_init['execution']['batchargs']['cores']}}"
+      native: "{{ create_ics.mpas_init['execution']['batchargs']['native'] }}"
+      attrs:
+        maxtries: "{{ create_ics.mpas_init['execution']['batchargs']['maxtries']}}"
       envars:
         CONFIG_PATH: '&EXPERIMENT_CONFIG;'
         CYCLE:
@@ -100,6 +112,9 @@ workflow:
           value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H.log'
       walltime: "{{ create_lbcs.mpas_init['execution']['batchargs']['walltime']}}"
       cores: !int "{{ create_lbcs.mpas_init['execution']['batchargs']['cores']}}"
+      native: "{{ create_lbcs.mpas_init['execution']['batchargs']['native'] }}"
+      attrs:
+        maxtries: "{{ create_lbcs.mpas_init['execution']['batchargs']['maxtries'] }}"
       envars:
         CONFIG_PATH: '&EXPERIMENT_CONFIG;'
         CYCLE:
@@ -118,6 +133,9 @@ workflow:
           value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H.log'
       walltime: "{{ forecast.mpas['execution']['batchargs']['walltime']}}"
       cores: !int "{{ forecast.mpas['execution']['batchargs']['cores']}}"
+      native: "{{ forecast.mpas['execution']['batchargs']['native'] }}"
+      attrs:
+        maxtries: "{{ forecast.mpas['execution']['batchargs']['maxtries'] }}"
       partition: "{{ forecast.mpas.execution.batchargs.get('partition') }}"
       envars:
         CONFIG_PATH: '&EXPERIMENT_CONFIG;'
