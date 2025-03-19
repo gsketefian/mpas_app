@@ -193,6 +193,7 @@ forecast:
         walltime: 01:30:00
         native: ''
         maxtries: 1
+        partition: '{{ user.platform }}'
       envcmds:
         - ulimit -s unlimited || true
         - module use {{ user.mpas_app }}/modulefiles
