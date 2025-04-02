@@ -176,7 +176,7 @@ def main(user_config_files: list[Path, str]) -> None:
             all_nprocs.append(cores)
     for nprocs in all_nprocs:
         if not (experiment_path / f"{mesh_file_path.name}.part.{nprocs}").is_file():
-            print(f"Creating grid file for {nprocs} procs")
+            print(f"Creating grid partitioning file for {nprocs} procs")
             create_grid_files(experiment_path, mesh_file_path, nprocs)
 
 

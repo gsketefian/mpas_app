@@ -125,6 +125,8 @@ workflow:
       dependency:
         taskdep:
           attrs:
+            # It would probably be better to make this depend on the ungrib task;
+            # it's not clear why mpas_lbcs needs to wait until mpas_ics is complete.
             task: mpas_ics
     task_mpas:
       command: 'source &MPAS_APP;/load_wflow_modules.sh &PLATFORM; ; python &MPAS_APP;/scripts/mpas.py'
@@ -144,6 +146,9 @@ workflow:
           cyclestr:
             value: "@Y-@m-@dT@H:@M:@S"
       dependency:
+        # It would probably be better to make this depend on both the mpas_ics
+        # and mpas_lbcs tasks if both exist, or only on mpas_ics if mpas_lbcs
+        # doesn't exist.
         taskdep:
           attrs:
             task: mpas_lbcs

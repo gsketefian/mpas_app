@@ -1,15 +1,14 @@
 user:
   cycle_frequency: 12
-  #experiment_dir: ''
-  #experiment_dir: /scratch2/BMC/fv3lam/Gerard.Ketefian/mpas_stuff_modify_with_stoch/expt_dirs/test_02
   # The experiment directory will be set by the experiment generation script
   # using the name of the config file it is passed and the directory in which
   # it (the generation script) is located.  Thus, it can be left unspecified
   # here.
+  #experiment_dir: ''
   first_cycle: !!timestamp 2023-09-15T00:00:00
   last_cycle:  !!timestamp 2023-09-15T00:00:00
   mesh_label: conus_15km
-  mpas_app: ""
+  mpas_app: ''
   platform: hera
   workflow_blocks:
     - cold_start.yaml
@@ -81,8 +80,6 @@ create_ics:
     boundary_conditions:
       interval_hours: 6
       length: 6
-#      interval_hours: 3
-#      length: 3
       offset: 0
       path: "{{ prepare_grib.ungrib['rundir'] }}"
     execution:
@@ -201,7 +198,8 @@ forecast:
   mpas:
     execution:
       batchargs:
-        cores: 32
+#        cores: 32
+        cores: 80
         walltime: 00:30:00
         native: '--exclusive'
         maxtries: 1
@@ -228,7 +226,6 @@ forecast:
       offset: 0
       path: "{{ create_lbcs.mpas_init['rundir'] }}"
     length: 6
-#    length: 3
     namelist:
       base_file: "{{ user.mpas_app }}/src/MPAS-Model/namelist.atmosphere"
       update_values:
@@ -248,19 +245,20 @@ forecast:
         filename_template: "{{ user.mesh_label }}.init.nc"
         io_type: "pnetcdf,cdf5"
         input_interval: initial_only
-      restart:
-        mutable: false
-        type: "input;output"
-        filename_template: "restart.$Y-$M-$D_$h.$m.$s.nc"
-        io_type: "pnetcdf,cdf5"
-        input_interval: initial_only
-        output_interval: "1_00:00:00"
-        clobber_mode: overwrite
+#      restart:
+#        mutable: false
+#        type: "input;output"
+#        filename_template: "restart.$Y-$M-$D_$h.$m.$s.nc"
+#        io_type: "pnetcdf,cdf5"
+#        input_interval: initial_only
+#        output_interval: "1_00:00:00"
+#        clobber_mode: overwrite
       output:
         mutable: true
         type: output
         filename_template: "history.$Y-$M-$D_$h.$m.$s.nc"
-        output_interval: "01:00:00"
+#        output_interval: "01:00:00"
+        output_interval: "00:15:00"
         files:
           - stream_list.atmosphere.output
         clobber_mode: overwrite
@@ -268,19 +266,20 @@ forecast:
         mutable: true
         type: output
         filename_template: "diag.$Y-$M-$D_$h.$m.$s.nc"
-        output_interval: "01:00:00"
+#        output_interval: "01:00:00"
+        output_interval: "00:15:00"
         files:
           - stream_list.atmosphere.diagnostics
         clobber_mode: overwrite
-      surface:
-        mutable: true
-        type: input
-        filename_template: "x1.40962.sfc_update.nc"
-        io_type: "pnetcdf,cdf5"
-        filename_interval: "none"
-        input_interval: "none"
-        files:
-          - stream_list.atmosphere.surface
+#      surface:
+#        mutable: true
+#        type: input
+#        filename_template: "x1.40962.sfc_update.nc"
+#        io_type: "pnetcdf,cdf5"
+#        filename_interval: "none"
+#        input_interval: "none"
+#        files:
+#          - stream_list.atmosphere.surface
       lbc_in:
         mutable: false
         type: input
