@@ -1,0 +1,10 @@
+
+forecast:
+  mpas:
+    namelist:
+      update_values:
+        nam_stochy:
+          config_sppt_2: 0.8
+          config_sppt_3: 0.0
+          config_sppt_tau_3: 86400
+          config_sppt_lscale_3: 1000000

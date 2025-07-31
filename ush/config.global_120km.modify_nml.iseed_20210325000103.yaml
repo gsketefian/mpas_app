@@ -1,0 +1,7 @@
+
+forecast:
+  mpas:
+    namelist:
+      update_values:
+        nam_stochy:
+          config_iseed_sppt: 20210325000103
