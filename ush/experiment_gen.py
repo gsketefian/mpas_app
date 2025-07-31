@@ -75,6 +75,7 @@ def main(user_config_files: list[Path, str]) -> None:
     start_index = last_config_file.find(start_str) + len(start_str)
     end_index = last_config_file.find(end_str, start_index)
     expt_name = last_config_file[start_index:end_index]
+    print(f"{expt_name = }")
 
     #experiment_path = Path(os.path.join(mpas_app, '..', 'expt_dirs', expt_name)).absolute()
     experiment_path = os.path.join(mpas_app, '..', 'expt_dirs', expt_name)
