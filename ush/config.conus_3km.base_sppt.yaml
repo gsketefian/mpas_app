@@ -1,15 +1,15 @@
 user:
   cycle_frequency: 12
-  #experiment_dir: ''
-  #experiment_dir: /scratch4/BMC/fv3lam/Gerard.Ketefian/mpas_stuff_modify_with_stoch/expt_dirs/test_02
   # The experiment directory will be set by the experiment generation script
   # using the name of the config file it is passed and the directory in which
   # it (the generation script) is located.  Thus, it can be left unspecified
   # here.
+  #experiment_dir: /scratch4/BMC/fv3lam/Gerard.Ketefian/mpas_stuff_modify_with_stoch/expt_dirs/test_02
+  #experiment_dir: ''
   first_cycle: !!timestamp 2023-09-15T00:00:00
   last_cycle:  !!timestamp 2023-09-15T00:00:00
   mesh_label: conus_3km
-  mpas_app: ""
+  mpas_app: ''
   platform: hera
   workflow_blocks:
     - cold_start.yaml
@@ -246,6 +246,8 @@ forecast:
           config_block_decomp_file_prefix: "{{ user.mesh_label }}.graph.info.part."
         physics:
           config_physics_suite: convection_permitting
+        nam_stochy:
+          do_sppt: true
     rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/forecast'
     streams:
       input:
@@ -254,14 +256,14 @@ forecast:
         filename_template: "{{ user.mesh_label }}.init.nc"
         io_type: "pnetcdf,cdf5"
         input_interval: initial_only
-      restart:
-        mutable: false
-        type: "input;output"
-        filename_template: "restart.$Y-$M-$D_$h.$m.$s.nc"
-        io_type: "pnetcdf,cdf5"
-        input_interval: initial_only
-        output_interval: "1_00:00:00"
-        clobber_mode: overwrite
+#      restart:
+#        mutable: false
+#        type: "input;output"
+#        filename_template: "restart.$Y-$M-$D_$h.$m.$s.nc"
+#        io_type: "pnetcdf,cdf5"
+#        input_interval: initial_only
+#        output_interval: "1_00:00:00"
+#        clobber_mode: overwrite
       output:
         mutable: true
         type: output
@@ -282,15 +284,15 @@ forecast:
         files:
           - stream_list.atmosphere.diagnostics
         clobber_mode: overwrite
-      surface:
-        mutable: true
-        type: input
-        filename_template: "x1.40962.sfc_update.nc"
-        io_type: "pnetcdf,cdf5"
-        filename_interval: "none"
-        input_interval: "none"
-        files:
-          - stream_list.atmosphere.surface
+#      surface:
+#        mutable: true
+#        type: input
+#        filename_template: "x1.40962.sfc_update.nc"
+#        io_type: "pnetcdf,cdf5"
+#        filename_interval: "none"
+#        input_interval: "none"
+#        files:
+#          - stream_list.atmosphere.surface
       lbc_in:
         mutable: false
         type: input
