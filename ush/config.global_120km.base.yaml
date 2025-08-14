@@ -13,7 +13,7 @@ user:
     - cold_start.yaml
 
 data:
-  mesh_files: /scratch2/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_vary_MPAS_hash/meshes
+  mesh_files: /scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_vary_MPAS_hash/meshes
 
 platform:
   scheduler: slurm
@@ -77,7 +77,7 @@ get_lbcs_data:
 #prepare_grib:
 #  ungrib:
 #    gfs_files:
-#      path: "/scratch2/BMC/fv3lam/MPAS_stoch/icbc_data/GFS/gfs.t{cycle_hour:02d}z.pgrb2.0p25.f{forecast_hour:03d}"
+#      path: "/scratch4/BMC/fv3lam/MPAS_stoch/icbc_data/GFS/gfs.t{cycle_hour:02d}z.pgrb2.0p25.f{forecast_hour:03d}"
 
 prepare_grib:
   ungrib:

@@ -1,6 +1,6 @@
 user:
   cycle_frequency: 12
-  #experiment_dir: /scratch2/BMC/fv3lam/Gerard.Ketefian/mpas_stuff_modify_with_stoch/expt_dirs/test_02
+  #experiment_dir: /scratch4/BMC/fv3lam/Gerard.Ketefian/mpas_stuff_modify_with_stoch/expt_dirs/test_02
   # The experiment directory will be set by the experiment generation script
   # using the name of the config file it is passed and the directory in which
   # it (the generation script) is located.  Thus, it can be left unspecified
@@ -15,7 +15,7 @@ user:
     - cold_start.yaml
 
 data:
-  mesh_files: /scratch2/BMC/fv3lam/mayfield/mpas_stoch/meshes/15km-conus
+  mesh_files: /scratch4/BMC/fv3lam/mayfield/mpas_stoch/meshes/15km-conus
 
 platform:
   scheduler: slurm

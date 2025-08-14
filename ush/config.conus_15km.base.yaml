@@ -14,8 +14,8 @@ user:
     - cold_start.yaml
 
 data:
-  #mesh_files: /scratch2/BMC/fv3lam/mayfield/mpas_stoch/meshes/15km-conus
-  mesh_files: /scratch2/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_vary_MPAS_hash/meshes
+  #mesh_files: /scratch4/BMC/fv3lam/mayfield/mpas_stoch/meshes/15km-conus
+  mesh_files: /scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_vary_MPAS_hash/meshes
 
 platform:
   scheduler: slurm
