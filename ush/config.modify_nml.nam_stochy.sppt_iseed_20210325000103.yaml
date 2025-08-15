@@ -4,4 +4,5 @@ forecast:
     namelist:
       update_values:
         nam_stochy:
+          do_sppt: true
           config_iseed_sppt: 20210325000103
