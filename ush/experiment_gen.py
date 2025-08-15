@@ -18,7 +18,8 @@ from uwtools.config.formats.base import Config
 
 from get_crontab_contents import add_crontab_line
 from pprint import pprint
-
+from textwrap import dedent
+from datetime import datetime
 
 def create_grid_files(expt_dir: Path, mesh_file_path: Path, nprocs: int) -> None:
     """
@@ -70,22 +71,64 @@ def main(user_config_files: list[Path, str]) -> None:
 
     # Get the name of the experiment from the name of the last user config file.
     last_config_file = str(user_config_files[-1])
-    start_str = 'config.'
-    end_str = '.yaml'
-    start_index = last_config_file.find(start_str) + len(start_str)
-    end_index = last_config_file.find(end_str, start_index)
-    expt_name = last_config_file[start_index:end_index]
+#    start_str = 'config.'
+#    end_str = '.yaml'
+#    start_index = last_config_file.find(start_str) + len(start_str)
+#    end_index = last_config_file.find(end_str, start_index)
+#    expt_name = last_config_file[start_index:end_index]
+    # Set the experiment name to the substring between the last two dots in the
+    # name of the config file, e.g. if the config file name is config.abc.def.yaml,
+    # then the name of the experiment (thus far) will be "def".
+    substr = '.'
+    substr_count = last_config_file.count(substr)
+    if substr_count < 2:
+        msg = dedent(f"""
+            There must be at least two occurrences of the substring '{substr}' in the name
+            of the last configuration file specified on the command line (last_config_file),
+            but this is not the case:
+                {last_config_file = }
+                {substr_count = }
+            Stopping.
+            """)
+        logging.error(msg)
+        raise ValueError(msg)
+    else:
+        last_index = last_config_file.rfind(substr)
+        next_to_last_index = last_config_file.rfind(substr, 0, last_index)
+        expt_name = last_config_file[next_to_last_index+1:last_index]
+
+    # Add the mesh name (label) to the start of the experiment name.
+    mesh_label = experiment_config["user"]["mesh_label"]
+    expt_name = '.'.join([mesh_label, expt_name])
     print(f"{expt_name = }")
 
     #experiment_path = Path(os.path.join(mpas_app, '..', 'expt_dirs', expt_name)).absolute()
-    experiment_path = os.path.join(mpas_app, '..', 'expt_dirs', expt_name)
-    experiment_path = Path(os.path.abspath(experiment_path))
+    experiment_path = Path(mpas_app) / '..' / 'expt_dirs' / expt_name
+    experiment_path = experiment_path.resolve()
     experiment_config["user"]["experiment_dir"] = str(experiment_path)
+
+    if experiment_path.exists():
+        # If the experiment directory already exists, rename it by appending the
+        # current date and time to its name.
+        crnt_datetime = datetime.now()
+        crnt_datetime_str = crnt_datetime.strftime("%Y%m%d_%H:%M")
+        expt_name_old = '.'.join([expt_name, crnt_datetime_str])
+        experiment_path_renamed = Path(mpas_app) / '..' / 'expt_dirs' / expt_name_old
+        experiment_path_renamed = experiment_path_renamed.resolve()
+        msg = dedent(f"""
+            The experiment directory (experiment_path) already exists:
+                {experiment_path = }
+            Moving (renaming) existing directory to:
+                {experiment_path_renamed = }
+            """)
+        logging.info(msg)
+        experiment_path.rename(experiment_path_renamed)
 
     # Build the experiment directory
     experiment_path = Path(experiment_config["user"]["experiment_dir"])
     print("Experiment will be set up here: {}".format(experiment_path))
     os.makedirs(experiment_path, exist_ok=True)
+
     # Get configuration parameters associated with launching the workflow.
     wflow_launch_config = experiment_config["wflow_launch"]
     wflow_launch_script_fn = wflow_launch_config["launch_script_fn"]
