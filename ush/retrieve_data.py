@@ -246,7 +246,14 @@ def create_target_path(target_path):
     Append target path and create directory for ensemble members
     """
     if not os.path.exists(target_path):
-        os.makedirs(target_path)
+        # The get_ics_data and get_lbcs_data tasks are both trying to create this
+        # directory, and one of them does so between the time this if-statement
+        # in the other checks for its existence and the time it tries to create
+        # the directory below.  That causes os.makedirs to error out, so the
+        # exist_ok flag needs to be set to True (in which case the if-statement
+        # may not be necessary, but we'll deal with that later).
+#        os.makedirs(target_path)
+        os.makedirs(target_path, exist_ok=True)
     return target_path
 
 
