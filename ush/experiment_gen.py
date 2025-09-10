@@ -69,7 +69,8 @@ def main(user_config_files: list[Path, str]) -> None:
 
     experiment_config["user"]["mpas_app"] = mpas_app.as_posix()
 
-    # Get the name of the experiment from the name of the last user config file.
+    # Get the name of the experiment from the name of the last user config file
+    # specified on the command line.
     last_config_file = str(user_config_files[-1])
 #    start_str = 'config.'
 #    end_str = '.yaml'
@@ -77,8 +78,9 @@ def main(user_config_files: list[Path, str]) -> None:
 #    end_index = last_config_file.find(end_str, start_index)
 #    expt_name = last_config_file[start_index:end_index]
     # Set the experiment name to the substring between the last two dots in the
-    # name of the config file, e.g. if the config file name is config.abc.def.yaml,
-    # then the name of the experiment (thus far) will be "def".
+    # name of the config file specified on the command line.  For example, if
+    # the name of that config file is config.abc.def.yaml, then the name of the
+    # experiment (thus far) will be "def".
     substr = '.'
     substr_count = last_config_file.count(substr)
     if substr_count < 2:
