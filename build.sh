@@ -16,6 +16,10 @@ OPTIONS
       (e.g. intel | gnu | cray | gccgfortran)
   --continue
       continue with existing build
+  --pre-clean
+      does a "make clean" before building each core
+  --post-clean
+      does a "make clean" after building each core
   --clean
       does a "make clean"
   --exec-dir=EXEC_DIR
@@ -74,23 +78,37 @@ install_conda_envs () {
 
 install_mpas_init () {
 
+  printf "\nBuilding executable 'init_atmosphere_model' (CORE='init_atmosphere')..."
   pushd ${MPAS_APP_DIR}/src/MPAS-Model
-  make clean CORE=atmosphere
-  make clean CORE=init_atmosphere
-  make intel-mpi CORE=init_atmosphere ${MPAS_MAKE_OPTIONS}
+  if [ "${PRECLEAN}" = true ]; then
+    printf "\nPre-cleaning 'atmosphere' core..."
+    make clean CORE=atmosphere
+    printf "\nPre-cleaning 'init_atmosphere' core..."
+    make clean CORE=init_atmosphere
+  fi
+  make intel-mpi CORE=init_atmosphere ${MPAS_MAKE_OPTIONS} && \
+  printf "\nFinished building executable 'init_atmosphere_model' (CORE='init_atmosphere')."
   cp -v init_atmosphere_model ${EXEC_DIR}
-  make clean CORE=init_atmosphere
+#  make clean CORE=init_atmosphere
   popd
 }
 
 install_mpas_model () {
 
+  printf "\nBuilding executable 'atmosphere_model' (CORE='atmosphere')..."
   pushd ${MPAS_APP_DIR}/src/MPAS-Model
-  make clean CORE=atmosphere
+  if [ "${PRECLEAN}" = true ]; then
+    printf "\nPre-cleaning 'atmosphere' core..."
+    make clean CORE=atmosphere
+  fi
   make intel-mpi CORE=atmosphere ${MPAS_MAKE_OPTIONS}
   cp -v atmosphere_model ${EXEC_DIR}
-  ./build_tables
+  if [ "${PRECLEAN}" = true ]; then
+    printf "\nBuilding tables..."
+    ./build_tables
+  fi
   popd
+  printf "\nFinished building executable 'atmosphere_model' (CORE='atmosphere')."
 }
 
 # print settings
@@ -135,6 +153,7 @@ SINGLE_PRECISION=false
 
 # Make options
 CLEAN=false
+PRECLEAN=false
 
 # process required arguments
 if [[ ("$1" == "--help") || ("$1" == "-h") ]]; then
@@ -153,6 +172,7 @@ while :; do
     --continue) CONTINUE=true ;;
     --continue=?*|--continue=) usage_error "$1 argument ignored." ;;
     --clean) CLEAN=true ;;
+    --preclean) PRECLEAN=true ;;
     --build) BUILD=true ;;
     --exec-dir=?*) EXEC_DIR=${1#*=} ;;
     --exec-dir|--exec-dir=) usage_error "$1 requires argument." ;;
@@ -235,11 +255,13 @@ fi
 
 printf "MODULE_FILE=${MODULE_FILE}\n" >&2
 
+printf "\nBUILD_JOBS = ${BUILD_JOBS}"
 # make settings
 MAKE_SETTINGS="-j ${BUILD_JOBS}"
 if [ "${VERBOSE}" = true ]; then
   MAKE_SETTINGS="${MAKE_SETTINGS} VERBOSE=1"
 fi
+printf "\nMAKE_SETTINGS = ${MAKE_SETTINGS}"
 
 # Before we go on load modules, we first need to activate Lmod for some systems
 source ${MPAS_APP_DIR}/etc/lmod-setup.sh $MACHINE
@@ -257,36 +279,38 @@ printf "...Building MPAS-Model..."
 MPAS_MAKE_OPTIONS="${MAKE_SETTINGS}"
 
 if [ "${DEBUG}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MAKE_OPTIONS} DEBUG=true"
+  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} DEBUG=true"
 fi
 
 if [ "${USE_PAPI}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MAKE_OPTIONS} USE_PAPI=true"
+  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} USE_PAPI=true"
 fi
 
 if [ "${TAU}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MAKE_OPTIONS} TAU=true"
+  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} TAU=true"
 fi
 
 if [ "${AUTOCLEAN}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MAKE_OPTIONS} AUTOCLEAN=true"
+  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} AUTOCLEAN=true"
 fi
 
 if [ "${GEN_F90}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MAKE_OPTIONS} GEN_F90=true"
+  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} GEN_F90=true"
 fi
 
 if [ ! -z "${TIMER_LIB}" ]; then
-  MPAS_MAKE_OPTIONS="${MAKE_OPTIONS} TIMER_LIB={$TIMER_LIB}"
+  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} TIMER_LIB={$TIMER_LIB}"
 fi
 
 if [ "${OPENMP}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MAKE_OPTIONS} OPENMP=true"
+  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} OPENMP=true"
 fi
 
 if [ "${SINGLE_PRECISION}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MAKE_OPTIONS} PRECISION=single"
+  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} PRECISION=single"
 fi
+
+printf "\nMPAS_MAKE_OPTIONS = ${MPAS_MAKE_OPTIONS}"
 
 EXEC_DIR="${MPAS_APP_DIR}/exec"
 if [ ! -d "$EXEC_DIR" ]; then
