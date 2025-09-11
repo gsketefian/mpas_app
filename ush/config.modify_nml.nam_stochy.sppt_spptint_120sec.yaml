@@ -1,0 +1,8 @@
+
+forecast:
+  mpas:
+    namelist:
+      update_values:
+        nam_stochy:
+          do_sppt: true
+          config_spptint: 120.0
