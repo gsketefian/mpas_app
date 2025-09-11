@@ -27,6 +27,9 @@ expt_config.dereference(context={"cycle": cycle, **expt_config})
 mpas_config = expt_config["forecast"]["mpas"]
 mpas_dir = Path(mpas_config["rundir"])
 
+# Create the working directory for the forecast task.
+mpas_dir.mkdir(parents=True, exist_ok=True)
+
 # Run mpas
 mpas.execute(task="run", config=CONFIG_PATH, cycle=cycle, key_path=["forecast"])
 
