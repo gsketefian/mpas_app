@@ -172,7 +172,7 @@ while :; do
     --continue) CONTINUE=true ;;
     --continue=?*|--continue=) usage_error "$1 argument ignored." ;;
     --clean) CLEAN=true ;;
-    --preclean) PRECLEAN=true ;;
+    --pre-clean) PRECLEAN=true ;;
     --build) BUILD=true ;;
     --exec-dir=?*) EXEC_DIR=${1#*=} ;;
     --exec-dir|--exec-dir=) usage_error "$1 requires argument." ;;
