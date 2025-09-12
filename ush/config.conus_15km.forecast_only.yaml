@@ -225,7 +225,8 @@ forecast:
       batchargs:
 #        cores: 32
         cores: 80
-        walltime: 00:30:00
+#        walltime: 00:30:00
+        walltime: 02:30:00
         native: '--exclusive'
         maxtries: 1
         # This could be set to 'bigmem' on hera to access the big memory nodes there.
