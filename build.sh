@@ -78,16 +78,31 @@ install_conda_envs () {
 
 install_mpas_init () {
 
-  printf "\nBuilding executable 'init_atmosphere_model' (CORE='init_atmosphere')..."
+  echo "Building executable 'init_atmosphere_model' (CORE='init_atmosphere')..."
   pushd ${MPAS_APP_DIR}/src/MPAS-Model
   if [ "${PRECLEAN}" = true ]; then
-    printf "\nPre-cleaning 'atmosphere' core..."
+    echo "Pre-cleaning 'atmosphere' core..."
+#
+# Note that the "clean" target of the Makefile in the directory
+# 
+#   MPAS-Model/src/core_atmosphere
+#
+# will remove all files and symlinks in the top-level directory (MPAS-Model)
+# that end with TBL and/or that contain the string "DATA" since the recipe
+# for the "clean" target contains the lines
+#
+#   ( cd ../..; rm -f *TBL )
+#   ( cd ../..; rm -f *DATA* )
+#
+# This of course includes the MP_THOMPSON_*_DATA.DBL files for Thompson
+# microphysics.
+#
     make clean CORE=atmosphere
-    printf "\nPre-cleaning 'init_atmosphere' core..."
+    echo "Pre-cleaning 'init_atmosphere' core..."
     make clean CORE=init_atmosphere
   fi
   make intel-mpi CORE=init_atmosphere ${MPAS_MAKE_OPTIONS} && \
-  printf "\nFinished building executable 'init_atmosphere_model' (CORE='init_atmosphere')."
+  echo "Finished building executable 'init_atmosphere_model' (CORE='init_atmosphere')."
   cp -v init_atmosphere_model ${EXEC_DIR}
 #  make clean CORE=init_atmosphere
   popd
@@ -95,20 +110,88 @@ install_mpas_init () {
 
 install_mpas_model () {
 
-  printf "\nBuilding executable 'atmosphere_model' (CORE='atmosphere')..."
+  echo "Building executable 'atmosphere_model' (CORE='atmosphere')..."
   pushd ${MPAS_APP_DIR}/src/MPAS-Model
   if [ "${PRECLEAN}" = true ]; then
-    printf "\nPre-cleaning 'atmosphere' core..."
+    echo "Pre-cleaning 'atmosphere' core..."
+#
+# Note that the "clean" target of the Makefile in the directory
+# 
+#   src/core_atmosphere
+#
+# will remove all files and symlinks in the top-level directory (usually
+# named "MPAS-Model") that end with TBL and/or that contain the string
+# "DATA" because the recipe for the "clean" target contains the lines
+#
+#   ( cd ../..; rm -f *TBL )
+#   ( cd ../..; rm -f *DATA* )
+#
+# This of course includes the MP_THOMPSON_*_DATA.DBL files for Thompson
+# microphysics.  New symlinks in the top-level directory to *TBL files
+# in the directories
+#
+#   src/core_atmosphere/physics/physics_wrf/files
+#
+# and
+#
+#   core_atmosphere/physics/physics_noahmp/parameters
+#
+# and to *DATA* files in the directory
+#
+#   src/core_atmosphere/physics/physics_wrf/files
+#
+# are created later during the build of the model below (e.g. when make
+# is called below with target "intel-mpi" and CORE=atmosphere).
+#
+# Note that the "clean" target in src/core_atmosphere/Makefile does NOT
+# remove the "files" directory that the make command below creates and
+# populates with files.  Strictly speaking it should, but it doesn't
+# matter since that directory and its contents get overwritten by the
+# make below.
+#
     make clean CORE=atmosphere
   fi
+#
+# The following "make" command will create the directory
+#
+#   src/core_atmosphere/physics/physics_wrf/files
+#
+# and will populate it with various tables (text files) and other data
+# to be used by the physics schemes, but it will NOT create the tables
+# for Thompson or TEMPO microphysics.  That is done by the build_tables
+# (for Thompson) or build_tables_tempo (for TEMPO) command below.
+#
+# It will also create symlinks in the top-level MPAS-Model directory to
+# to physics tables and related files in subdirectories.  This is done
+# by the recipe for the physcore target in the Makefile in the directory
+#
+#   src/core_atmosphere
+#
+# That recipe includes these lines:
+#
+#   ( cd ../..; ln -sf ./src/core_atmosphere/physics/physics_wrf/files/*TBL .)
+#   ( cd ../..; ln -sf ./src/core_atmosphere/physics/physics_wrf/files/*DATA* .)
+#   ( cd ../..; ln -sf ./src/core_atmosphere/physics/physics_noahmp/parameters/*TBL .)
+#
+# Note that these will not create symlinks to Thompson or TEMPO microphysics
+# tables/files because the latter will not yet exist if a pre-clean has been
+# performed.
+#
   make intel-mpi CORE=atmosphere ${MPAS_MAKE_OPTIONS}
   cp -v atmosphere_model ${EXEC_DIR}
   if [ "${PRECLEAN}" = true ]; then
-    printf "\nBuilding tables..."
-    ./build_tables
+    echo "Building physics tables..."
+#
+# Note that the build_tables or build_tables_tempo command will place the
+# files it creates in the top-level MPAS-Model directory.  It will fail
+# if these files already exist, or if symlinks with the same names already
+# exist in this directory.
+#
+#    ./build_tables
+    ./build_tables_tempo
   fi
   popd
-  printf "\nFinished building executable 'atmosphere_model' (CORE='atmosphere')."
+  echo "Finished building executable 'atmosphere_model' (CORE='atmosphere')."
 }
 
 # print settings
@@ -229,7 +312,7 @@ if [ -z "${COMPILER}" ] ; then
     jet|hera|hercules) COMPILER=intel ;;
     *)
     COMPILER=intel
-printf "WARNING: Setting default COMPILER=intel for new platform ${PLATFORM}\n" >&2;
+    printf "WARNING: Setting default COMPILER=intel for new platform ${PLATFORM}\n" >&2;
     ;;
   esac
 fi
@@ -255,13 +338,13 @@ fi
 
 printf "MODULE_FILE=${MODULE_FILE}\n" >&2
 
-printf "\nBUILD_JOBS = ${BUILD_JOBS}"
+echo "BUILD_JOBS = ${BUILD_JOBS}"
 # make settings
 MAKE_SETTINGS="-j ${BUILD_JOBS}"
 if [ "${VERBOSE}" = true ]; then
   MAKE_SETTINGS="${MAKE_SETTINGS} VERBOSE=1"
 fi
-printf "\nMAKE_SETTINGS = ${MAKE_SETTINGS}"
+echo "MAKE_SETTINGS = ${MAKE_SETTINGS}"
 
 # Before we go on load modules, we first need to activate Lmod for some systems
 source ${MPAS_APP_DIR}/etc/lmod-setup.sh $MACHINE
@@ -310,7 +393,7 @@ if [ "${SINGLE_PRECISION}" = true ]; then
   MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} PRECISION=single"
 fi
 
-printf "\nMPAS_MAKE_OPTIONS = ${MPAS_MAKE_OPTIONS}"
+echo "MPAS_MAKE_OPTIONS = ${MPAS_MAKE_OPTIONS}"
 
 EXEC_DIR="${MPAS_APP_DIR}/exec"
 if [ ! -d "$EXEC_DIR" ]; then
