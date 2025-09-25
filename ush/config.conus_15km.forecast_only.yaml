@@ -257,7 +257,7 @@ forecast:
       stream_list.atmosphere.surface: "{{ user.mpas_app }}/parm/mpas/stream_list.atmosphere.surface"
 #    files_to_link:
 #      <<: *mpas_init_files_to_link
-    files_to_link: &mpas_init_files_to_link
+    files_to_link: &mpas_files_to_link
       CAM_ABS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/CAM_ABS_DATA.DBL"
       CAM_AEROPT_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/CAM_AEROPT_DATA.DBL"
       GENPARM.TBL: "{{ user.mpas_app }}/src/MPAS-Model/GENPARM.TBL"
@@ -275,7 +275,9 @@ forecast:
       MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL"
       MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL"
       MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL"
-      '{%- if user.config_mp == "mp_tempo" -%}CCN_ACTIVATE_DATA{%- else -%}unused{%- endif -%}': "{%- if user.config_mp == 'mp_tempo' -%} {{ user.mpas_app }}/src/MPAS-Model/CCN_ACTIVATE_DATA {%- else -%} None {%- endif -%}"
+#      '{%- if user.config_mp == "mp_tempo" -%}CCN_ACTIVATE_DATA{%- else -%}unused{%- endif -%}': "{%- if user.config_mp == 'mp_tempo' -%} {{ user.mpas_app }}/src/MPAS-Model/CCN_ACTIVATE_DATA {%- else -%} None {%- endif -%}"
+# The following needs to be in an if-statement, but not sure how to do it.
+      CCN_ACTIVATE_DATA: "{{ user.mpas_app }}/src/MPAS-Model/CCN_ACTIVATE_DATA" 
     lateral_boundary_conditions:
       interval_hours: 6
       offset: 0
