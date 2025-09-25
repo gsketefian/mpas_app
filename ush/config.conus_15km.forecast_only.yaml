@@ -10,9 +10,17 @@ user:
   mesh_label: conus_15km
   mpas_app: ''
   platform: hera
+  build_type: 'debug'
+#  build_type: 'optimized'
+#  config_mp: 'mp_tempo'
+  config_mp: 'mp_thompson'
   workflow_blocks:
 #    - cold_start.yaml
     - cold_start_staged_ics_lbcs.yaml
+
+auxil:
+  MP_NAME: '{%- if user.config_mp == "mp_tempo" -%} TEMPO {%- else -%} THOMPSON {%- endif -%}'
+  hailaware_str: '{%- if user.config_mp == "mp_tempo" -%}_HAILAWARE{%-endif-%}'
 
 data:
   #mesh_files: /scratch4/BMC/fv3lam/mayfield/mpas_stoch/meshes/15km-conus
@@ -236,7 +244,7 @@ forecast:
         - module use {{ user.mpas_app }}/modulefiles
         - module load build_{{ user.platform }}_intel
         - mkdir -p {{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/forecast
-      executable: "{{ user.mpas_app }}/exec/atmosphere_model"
+      executable: "{{ user.mpas_app }}/exec.gsl_develop_stoch.{{user.build_type}}/atmosphere_model"
       mpiargs:
         - "--ntasks={{ forecast.mpas['execution']['batchargs']['cores']}}"
       mpicmd: srun
@@ -263,10 +271,11 @@ forecast:
       RRTMG_SW_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/RRTMG_SW_DATA.DBL"
       SOILPARM.TBL: "{{ user.mpas_app }}/src/MPAS-Model/SOILPARM.TBL"
       VEGPARM.TBL: "{{ user.mpas_app }}/src/MPAS-Model/VEGPARM.TBL"
-      MP_THOMPSON_QRacrQG_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QRacrQG_DATA.DBL"
-      MP_THOMPSON_QRacrQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QRacrQS_DATA.DBL"
-      MP_THOMPSON_freezeH2O_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_freezeH2O_DATA.DBL"
-      MP_THOMPSON_QIautQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QIautQS_DATA.DBL"
+      MP_{{auxil.MP_NAME}}_freezeH2O_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_freezeH2O_DATA.DBL"
+      MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL"
+      MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL"
+      MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL"
+      '{%- if user.config_mp == "mp_tempo" -%}CCN_ACTIVATE_DATA{%- else -%}unused{%- endif -%}': "{%- if user.config_mp == 'mp_tempo' -%} {{ user.mpas_app }}/src/MPAS-Model/CCN_ACTIVATE_DATA {%- else -%} None {%- endif -%}"
     lateral_boundary_conditions:
       interval_hours: 6
       offset: 0
@@ -284,6 +293,7 @@ forecast:
           config_block_decomp_file_prefix: "{{ user.mesh_label }}.graph.info.part."
         physics:
           config_physics_suite: convection_permitting
+          config_microp_scheme: '{{ user.config_mp }}'
     rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/forecast'
     streams:
       input:
