@@ -10,12 +10,12 @@ user:
 #  experiment_dir: '/spptint_runs/../abc'
 #  experiment_dir: 'spptint_runs/../abc'
 #  experiment_dir: ''
-#  experiment_dir: 
+#  experiment_dir:
   experiment_dir: 'spptint_sensitivity_tests.pat1_only_l1_50km.output_start_end_only'
 #
 # If create_expt_name is set to True, the experiment name will be generated
 # from the names of the config files on the command line (passed as arguments
-# to experiment_gen.py), and this name will be appended to the end of 
+# to experiment_gen.py), and this name will be appended to the end of
 # experiment_dir specified above.
 #
 #  create_expt_name: False
@@ -56,7 +56,7 @@ wflow_launch:
 cron:
   use_cron_to_relaunch: True
   cron_relaunch_intvl_mnts: 1
-  # This will be set by the experiment generation script, so it doesn't matter what it 
+  # This will be set by the experiment generation script, so it doesn't matter what it
   # is set to here.  Leave it to its default value.
   crontab_line: None
 
@@ -293,7 +293,7 @@ forecast:
       MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL"
 #      '{%- if user.config_mp == "mp_tempo" -%}CCN_ACTIVATE_DATA{%- else -%}unused{%- endif -%}': "{%- if user.config_mp == 'mp_tempo' -%} {{ user.mpas_app }}/src/MPAS-Model/CCN_ACTIVATE_DATA {%- else -%} None {%- endif -%}"
 # The following needs to be in an if-statement, but not sure how to do it.
-      CCN_ACTIVATE_DATA: "{{ user.mpas_app }}/src/MPAS-Model/CCN_ACTIVATE_DATA" 
+      CCN_ACTIVATE_DATA: "{{ user.mpas_app }}/src/MPAS-Model/CCN_ACTIVATE_DATA"
     lateral_boundary_conditions:
       interval_hours: 6
       offset: 0
