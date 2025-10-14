@@ -28,8 +28,8 @@ user:
   platform: hera
   build_type: 'debug'
 #  build_type: 'optimized'
-#  config_mp: 'mp_tempo'
-  config_mp: 'mp_thompson'
+  config_mp: 'mp_tempo'
+#  config_mp: 'mp_thompson'
   workflow_blocks:
 #    - cold_start.yaml
     - cold_start_staged_ics_lbcs.yaml
@@ -312,6 +312,10 @@ forecast:
         physics:
           config_physics_suite: convection_permitting
           config_microp_scheme: '{{ user.config_mp }}'
+          # Should set config_tempo_hailaware to !remove if not using TEMPO, but !remove is being treated as a string.
+          # And so is "true" and "True" and "false" and "False"!
+          #config_tempo_hailaware: '{%- if user.config_mp == "mp_tempo" -%} true {%- else -%} !remove {%- endif -%}'
+          config_tempo_hailaware: True
     rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/forecast'
     streams:
       input:
