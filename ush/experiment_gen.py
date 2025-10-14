@@ -147,7 +147,7 @@ def main(user_config_files: list[Path, str]) -> None:
         crnt_datetime = datetime.now()
         crnt_datetime_str = crnt_datetime.strftime("%Y%m%d_%H%M")
         expt_name_old = '.'.join([expt_name, crnt_datetime_str])
-        experiment_path_renamed = Path(mpas_app) / '..' / 'expt_dirs' / expt_name_old
+        experiment_path_renamed = experiment_path / '..'/ expt_name_old
         experiment_path_renamed = experiment_path_renamed.resolve()
         msg = dedent(f"""
             The experiment directory (experiment_path) already exists:
