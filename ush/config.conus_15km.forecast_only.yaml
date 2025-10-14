@@ -26,8 +26,8 @@ user:
   mesh_label: conus_15km
   mpas_app: ''
   platform: hera
-  build_type: 'debug'
-#  build_type: 'optimized'
+#  build_type: 'debug'
+  build_type: 'optimized'
   config_mp: 'mp_tempo'
 #  config_mp: 'mp_thompson'
   workflow_blocks:
