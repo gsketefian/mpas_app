@@ -69,45 +69,77 @@ def main(user_config_files: list[Path, str]) -> None:
 
     experiment_config["user"]["mpas_app"] = mpas_app.as_posix()
 
-    # Get the name of the experiment from the name of the last user config file
-    # specified on the command line.
-    last_config_file = str(user_config_files[-1])
-#    start_str = 'config.'
-#    end_str = '.yaml'
-#    start_index = last_config_file.find(start_str) + len(start_str)
-#    end_index = last_config_file.find(end_str, start_index)
-#    expt_name = last_config_file[start_index:end_index]
-    # Set the experiment name to the substring between the last two dots in the
-    # name of the config file specified on the command line.  For example, if
-    # the name of that config file is config.abc.def.yaml, then the name of the
-    # experiment (thus far) will be "def".
-    substr = '.'
-    substr_count = last_config_file.count(substr)
-    if substr_count < 2:
-        msg = dedent(f"""
-            There must be at least two occurrences of the substring '{substr}' in the name
-            of the last configuration file specified on the command line (last_config_file),
-            but this is not the case:
-                {last_config_file = }
-                {substr_count = }
-            Stopping.
-            """)
-        logging.error(msg)
-        raise ValueError(msg)
-    else:
-        last_index = last_config_file.rfind(substr)
-        next_to_last_index = last_config_file.rfind(substr, 0, last_index)
-        expt_name = last_config_file[next_to_last_index+1:last_index]
 
-    # Add the mesh name (label) to the start of the experiment name.
-    mesh_label = experiment_config["user"]["mesh_label"]
-    expt_name = '.'.join([mesh_label, expt_name])
+
+    # Get the specified experiment directory and convert it to a PosixPath
+    # object.
+    experiment_dir = experiment_config["user"]["experiment_dir"]
+    if not experiment_dir: experiment_dir = ''
+    experiment_dir = Path(experiment_dir)
+
+    # If experiment_dir is a relative path, prepend to it the default base
+    # directory in which experiment directories are created. 
+    if not os.path.isabs(experiment_dir):
+        experiment_dir = Path(mpas_app) / '..' / 'expt_dirs' / experiment_dir
+
+    # Resolve the path to get rid of '.', '..', symlinks, etc.
+    experiment_dir = experiment_dir.resolve()
+
+    print(f'{experiment_dir = }')
+
+
+    # If create_expt_name in the config file is set to True, form a name
+    # for the experiment from the names of the config files passed on the
+    # command line.
+    create_expt_name = experiment_config["user"]["create_expt_name"]
+    if not create_expt_name:
+        expt_name = ''
+    else:
+        # Get the name of the experiment from the name of the last user config file
+        # specified on the command line.
+        last_config_file = str(user_config_files[-1])
+#        start_str = 'config.'
+#        end_str = '.yaml'
+#        start_index = last_config_file.find(start_str) + len(start_str)
+#        end_index = last_config_file.find(end_str, start_index)
+#        expt_name = last_config_file[start_index:end_index]
+        # Set the experiment name to the substring between the last two dots in the
+        # name of the config file specified on the command line.  For example, if
+        # the name of that config file is config.abc.def.yaml, then the name of the
+        # experiment (thus far) will be "def".
+        substr = '.'
+        substr_count = last_config_file.count(substr)
+        if substr_count < 2:
+            msg = dedent(f"""
+                There must be at least two occurrences of the substring '{substr}' in the name
+                of the last configuration file specified on the command line (last_config_file),
+                but this is not the case:
+                    {last_config_file = }
+                    {substr_count = }
+                Stopping.
+                """)
+            logging.error(msg)
+            raise ValueError(msg)
+        else:
+            last_index = last_config_file.rfind(substr)
+            next_to_last_index = last_config_file.rfind(substr, 0, last_index)
+            expt_name = last_config_file[next_to_last_index+1:last_index]
+
+        # Add the mesh name (label) to the start of the experiment name.
+        mesh_label = experiment_config["user"]["mesh_label"]
+        expt_name = '.'.join([mesh_label, expt_name])
+
     print(f"{expt_name = }")
 
-    #experiment_path = Path(os.path.join(mpas_app, '..', 'expt_dirs', expt_name)).absolute()
-    experiment_path = Path(mpas_app) / '..' / 'expt_dirs' / expt_name
+    # Append the experiment name to experiment_dir to get the final experiment
+    # path.  Then resolve the path.
+    experiment_path = experiment_dir / expt_name
     experiment_path = experiment_path.resolve()
+    print(f'{experiment_path = }')
+
+    # Reset experiment_dir in the config dictionary to the final path created above.
     experiment_config["user"]["experiment_dir"] = str(experiment_path)
+
 
     if experiment_path.exists():
         # If the experiment directory already exists, rename it by appending the
