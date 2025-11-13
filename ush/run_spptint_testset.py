@@ -37,7 +37,7 @@ if __name__ == "__main__":
     num_runs = 3
 #    spptint_vals = [60]
 #    spptint_vals = [120]
-    spptint_vals = [600]
+#    spptint_vals = [600]
 
     run_spptint_testset(num_runs, spptint_vals)
 
