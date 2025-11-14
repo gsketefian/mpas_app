@@ -1,3 +1,4 @@
 [submodule "src/MPAS-Model"]
 	path = src/MPAS-Model
-	url = https://github.com/gsketefian/MPAS-Model.git
+	url = https://github.com/dtcenter/MPAS-Model.git
+	branch = gsl/MPAS_stoch_physics
