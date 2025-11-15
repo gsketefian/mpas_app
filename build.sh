@@ -114,7 +114,7 @@ function check_generate_microphys_files() {
     echo "At least some of the ${mp_name} MP files do not exist in the current directory."
     echo "Deleting any existing ${mp_name} MP files (tables) and generating new ones to"
     echo "obtain an updated and complete set..."
-    rm -rf "${mp_tables[@]}"
+    rm -f "${mp_tables[@]}"
 
     local exec_name=""
     if [ ${mp_name,,} == "thompson" ]; then
@@ -244,6 +244,12 @@ install_mpas_model () {
                     "MP_TEMPO_QIautQS_DATA.DBL"
                     "MP_TEMPO_QRacrQS_DATA.DBL"
                     "MP_TEMPO_freezeH2O_DATA.DBL" )
+
+  if [ "${PRECLEAN}" = true ]; then
+    echo "Removing any existing microphysics tables..."
+    rm -f "${thompson_mp_tables[@]}"
+    rm -f "${tempo_mp_tables[@]}"
+  fi
 
   check_generate_microphys_files "Thompson" ${thompson_mp_tables[@]}
 
