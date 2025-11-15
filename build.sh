@@ -92,9 +92,17 @@ function check_generate_microphys_files() {
   echo "    $(pwd)"
 
   local all_files_exist=true
-  local f=
+  local f=""
+  echo
   for f in "${mp_tables[@]}"; do
+    if [ "${VERBOSE}" = true ] ; then
+      echo "Checking for existence of file \"${f}\" in directory:"
+      echo "    $(pwd)"
+    fi
     if [[ ! -f "${f}" ]]; then
+      if [ "${VERBOSE}" = true ] ; then
+        echo "File \"${f}\" does not exist.  Setting \"all_files_exist\" to \"false\"."
+      fi
       all_files_exist=false
       break
     fi
@@ -246,9 +254,11 @@ install_mpas_model () {
                     "MP_TEMPO_freezeH2O_DATA.DBL" )
 
   if [ "${PRECLEAN}" = true ]; then
-    echo "Removing any existing microphysics tables..."
+    echo
+    echo "Since \"PRECLEAN\" is set to \"true\", will remove any existing microphysics tables..."
     rm -f "${thompson_mp_tables[@]}"
     rm -f "${tempo_mp_tables[@]}"
+    echo "Done removing any existing microphysics tables."
   fi
 
   check_generate_microphys_files "Thompson" ${thompson_mp_tables[@]}
