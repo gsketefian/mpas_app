@@ -76,6 +76,57 @@ install_conda_envs () {
   fi
 }
 
+function check_generate_microphys_files() {
+  # This function checks for the existence of the MP files (tables) for the
+  # given microphysics (MP) scheme and generates them if necessary.
+  local mp_name="${1}"
+  local mp_tables=("${@:2}")
+
+  echo
+  echo "The following files are needed by the ${mp_name} microphysics (MP) scheme"
+  echo "and must exist in the current directory if MPAS is to be run with this"
+  echo "scheme:"
+  printf "    %s\n" "${mp_tables[@]}"
+  echo "Checking for the existence of these files in the current directory."
+  echo "Current directory is:"
+  echo "    $(pwd)"
+
+  local all_files_exist=true
+  local f=
+  for f in "${mp_tables[@]}"; do
+    if [[ ! -f "${f}" ]]; then
+      all_files_exist=false
+      break
+    fi
+  done
+
+  if "${all_files_exist}"; then
+    echo "All ${mp_name} MP files already exist in the current directory."
+    echo "No need to generate ${mp_name} MP files (tables)."
+  else
+    #
+    # Note that the build_tables or build_tables_tempo command called below
+    # places the files it creates in the top-level directory of the MPAS-Model
+    # clone.  It will fail if these files already exist (or if symlinks with
+    # the same names already exist).  That is why we must first delete any
+    # such existing files/symlinks before attempting to (re)generate them.
+    #
+    echo "At least some of the ${mp_name} MP files do not exist in the current directory."
+    echo "Deleting any existing ${mp_name} MP files (tables) and generating new ones to"
+    echo "obtain an updated and complete set..."
+    rm -rf "${mp_tables[@]}"
+
+    local exec_name=""
+    if [ ${mp_name,,} == "thompson" ]; then
+      exec_name="build_tables"
+    elif [ ${mp_name,,} == "tempo" ]; then
+      exec_name="build_tables_tempo"
+    fi
+    ./${exec_name}
+  fi
+
+}
+
 install_mpas_init () {
 
   echo "Building executable 'init_atmosphere_model' (CORE='init_atmosphere')..."
@@ -162,7 +213,7 @@ install_mpas_model () {
 # (for Thompson) or build_tables_tempo (for TEMPO) command below.
 #
 # It will also create symlinks in the top-level MPAS-Model directory to
-# to physics tables and related files in subdirectories.  This is done
+# the physics tables and related files in subdirectories.  This is done
 # by the recipe for the physcore target in the Makefile in the directory
 #
 #   src/core_atmosphere
@@ -175,21 +226,29 @@ install_mpas_model () {
 #
 # Note that these will not create symlinks to Thompson or TEMPO microphysics
 # tables/files because the latter will not yet exist if a pre-clean has been
-# performed.
+# performed (and the "*"s in the ln commands above will only create symlinks
+# to *TBL and *DATA* files that already exist in the directories).
 #
   make intel-mpi CORE=atmosphere ${MPAS_MAKE_OPTIONS}
   cp -v atmosphere_model ${EXEC_DIR}
-  if [ "${PRECLEAN}" = true ]; then
-    echo "Building physics tables..."
 #
-# Note that the build_tables or build_tables_tempo command will place the
-# files it creates in the top-level MPAS-Model directory.  It will fail
-# if these files already exist, or if symlinks with the same names already
-# exist in this directory.
+# Set the names of the files needed for Thompson and TEMPO micorphysics (MP).
+# Then generate these files if they don't already exist.
 #
-#    ./build_tables
-    ./build_tables_tempo
-  fi
+  thompson_mp_tables=( "MP_THOMPSON_QIautQS_DATA.DBL"
+                       "MP_THOMPSON_QRacrQG_DATA.DBL"
+                       "MP_THOMPSON_QRacrQS_DATA.DBL"
+                       "MP_THOMPSON_freezeH2O_DATA.DBL" )
+  
+  tempo_mp_tables=( "MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL"
+                    "MP_TEMPO_QIautQS_DATA.DBL"
+                    "MP_TEMPO_QRacrQS_DATA.DBL"
+                    "MP_TEMPO_freezeH2O_DATA.DBL" )
+
+  check_generate_microphys_files "Thompson" ${thompson_mp_tables[@]}
+
+  check_generate_microphys_files "TEMPO" ${tempo_mp_tables[@]}
+
   popd
   echo "Finished building executable 'atmosphere_model' (CORE='atmosphere')."
 }
@@ -216,7 +275,6 @@ usage_error () {
   usage >&2
   exit 1
 }
-
 
 # default settings
 LCL_PID=$$
@@ -414,6 +472,5 @@ if [ "${CLEAN}" = true ]; then
        make ${MAKE_SETTINGS} clean 2>&1 | tee log.make
     fi
 fi
-
 
 
