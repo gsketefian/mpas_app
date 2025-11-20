@@ -26,6 +26,8 @@ OPTIONS
       installation binary directory name ("exec" by default; any name is available)
   --conda-dir=CONDA_DIR
       installation location for miniconda (SRW clone conda subdirectory by default)
+  --conda-only
+      install conda only without building MPAS
   --build-jobs=BUILD_JOBS
       number of build jobs; defaults to 4
   -v, --verbose
@@ -335,6 +337,7 @@ while :; do
     --exec-dir|--exec-dir=) usage_error "$1 requires argument." ;;
     --conda-dir=?*) CONDA_BUILD_DIR=${1#*=} ;;
     --conda-dir|--conda-dir=) usage_error "$1 requires argument." ;;
+    --conda-only) CONDA_ONLY=true ;;
     --build-jobs=?*) BUILD_JOBS=$((${1#*=})) ;;
     --build-jobs|--build-jobs=) usage_error "$1 requires argument." ;;
     --verbose|-v) VERBOSE=true ;;
@@ -374,12 +377,22 @@ if [ ! -d "${CONDA_BUILD_DIR}" ]; then
   install_miniforge
   install_conda_envs
 fi
+echo
+echo "Done with conda installation."
 
 # Conda environment should have linux utilities to perform these tasks on macos.
 MPAS_APP_DIR=$(cd "$(dirname "$(readlink -f -n "${BASH_SOURCE[0]}" )" )" && pwd -P)
 CONDA_BUILD_DIR="$(readlink -f "${CONDA_BUILD_DIR}")"
 EXEC_DIR=${EXEC_DIR:-${MPAS_APP_DIR}/exec}
 echo ${CONDA_BUILD_DIR} > ${MPAS_APP_DIR}/conda_loc
+
+# Stop if --conda-only was specified on the command line.
+if [ "${CONDA_ONLY}" = true ]; then
+  echo
+  echo "Since \"CONDA_ONLY\" is set to \"${CONDA_ONLY}\", will not build MPAS-Model."
+  echo "Exiting."
+  exit
+fi
 
 if [ -z "${COMPILER}" ] ; then
   case ${PLATFORM} in
