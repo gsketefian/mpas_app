@@ -34,6 +34,8 @@ OPTIONS
       build with verbose output
   --atmos-only
       build the MPAS atmosphere core only, this option assumes you have already built the init_atmosphere_model to create the necessary initial conditions and executables.
+  --no-mp-tables
+      do not generate micrphysics tables
   --debug
       build MPAS with debug mode
   --use-papi
@@ -242,30 +244,35 @@ install_mpas_model () {
   make intel-mpi CORE=atmosphere ${MPAS_MAKE_OPTIONS}
   cp -v atmosphere_model ${EXEC_DIR}
 #
+# Generate microphysics tables.
+#
+  if [ "${GENERATE_MP_TABLES}" = true ] ; then
+#
 # Set the names of the files needed for Thompson and TEMPO micorphysics (MP).
 # Then generate these files if they don't already exist.
 #
-  thompson_mp_tables=( "MP_THOMPSON_QIautQS_DATA.DBL"
-                       "MP_THOMPSON_QRacrQG_DATA.DBL"
-                       "MP_THOMPSON_QRacrQS_DATA.DBL"
-                       "MP_THOMPSON_freezeH2O_DATA.DBL" )
-  
-  tempo_mp_tables=( "MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL"
-                    "MP_TEMPO_QIautQS_DATA.DBL"
-                    "MP_TEMPO_QRacrQS_DATA.DBL"
-                    "MP_TEMPO_freezeH2O_DATA.DBL" )
+    thompson_mp_tables=( "MP_THOMPSON_QIautQS_DATA.DBL"
+                         "MP_THOMPSON_QRacrQG_DATA.DBL"
+                         "MP_THOMPSON_QRacrQS_DATA.DBL"
+                         "MP_THOMPSON_freezeH2O_DATA.DBL" )
 
-  if [ "${PRECLEAN}" = true ]; then
-    echo
-    echo "Since \"PRECLEAN\" is set to \"true\", will remove any existing microphysics tables..."
-    rm -f "${thompson_mp_tables[@]}"
-    rm -f "${tempo_mp_tables[@]}"
-    echo "Done removing any existing microphysics tables."
+    tempo_mp_tables=( "MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL"
+                      "MP_TEMPO_QIautQS_DATA.DBL"
+                      "MP_TEMPO_QRacrQS_DATA.DBL"
+                      "MP_TEMPO_freezeH2O_DATA.DBL" )
+
+    if [ "${PRECLEAN}" = true ]; then
+      echo
+      echo "Since \"PRECLEAN\" is set to \"true\", will remove any existing microphysics tables..."
+      rm -f "${thompson_mp_tables[@]}"
+      rm -f "${tempo_mp_tables[@]}"
+      echo "Done removing any existing microphysics tables."
+    fi
+
+    check_generate_microphys_files "Thompson" ${thompson_mp_tables[@]}
+
+    check_generate_microphys_files "TEMPO" ${tempo_mp_tables[@]}
   fi
-
-  check_generate_microphys_files "Thompson" ${thompson_mp_tables[@]}
-
-  check_generate_microphys_files "TEMPO" ${tempo_mp_tables[@]}
 
   popd
   echo "Finished building executable 'atmosphere_model' (CORE='atmosphere')."
@@ -309,6 +316,7 @@ AUTOCLEAN=false
 GEN_F90=false
 OPENMP=false
 SINGLE_PRECISION=false
+GENERATE_MP_TABLES=true
 
 # Make options
 CLEAN=false
@@ -343,6 +351,7 @@ while :; do
     --verbose|-v) VERBOSE=true ;;
     --verbose=?*|--verbose=) usage_error "$1 argument ignored." ;;
     --atmos-only ) ATMOS_ONLY=true ;;
+    --no-mp-tables) GENERATE_MP_TABLES=false ;;
     --debug) DEBUG=true ;;
     --use-papi) USE_PAPI=true ;;
     --tau ) TAU=true ;;
