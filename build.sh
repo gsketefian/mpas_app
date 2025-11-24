@@ -321,6 +321,8 @@ GENERATE_MP_TABLES=true
 # Make options
 CLEAN=false
 PRECLEAN=false
+CONDA_ONLY=false
+INSTALL_CONDA=true
 
 # process required arguments
 if [[ ("$1" == "--help") || ("$1" == "-h") ]]; then
@@ -346,6 +348,7 @@ while :; do
     --conda-dir=?*) CONDA_BUILD_DIR=${1#*=} ;;
     --conda-dir|--conda-dir=) usage_error "$1 requires argument." ;;
     --conda-only) CONDA_ONLY=true ;;
+    --no-conda) INSTALL_CONDA=false ;;
     --build-jobs=?*) BUILD_JOBS=$((${1#*=})) ;;
     --build-jobs|--build-jobs=) usage_error "$1 requires argument." ;;
     --verbose|-v) VERBOSE=true ;;
@@ -382,18 +385,37 @@ fi
 MACHINE="${PLATFORM}"
 printf "PLATFORM(MACHINE)=${PLATFORM}\n" >&2
 
-if [ ! -d "${CONDA_BUILD_DIR}" ]; then
-  install_miniforge
-  install_conda_envs
+if [ "${INSTALL_CONDA}" = true ]; then
+
+  if [ ! -d "${CONDA_BUILD_DIR}" ]; then
+    install_miniforge
+    install_conda_envs
+
+    CONDA_BUILD_DIR="$(readlink -f "${CONDA_BUILD_DIR}")"
+#    echo ${CONDA_BUILD_DIR} > ${MPAS_APP_DIR}/conda_loc
+    echo ${CONDA_BUILD_DIR} > ./conda_loc
+
+    echo
+    echo "Done with conda installation."
+  else
+    echo
+    echo "Conda build directory already exists:"
+    echo "  CONDA_BUILD_DIR = \"${CONDA_BUILD_DIR}\""
+    echo "  current directory: \"$(pwd)\""
+    echo "Please rename or remove before attempting a new conda build."
+    echo "Stopping."
+    exit
+  fi
+
+else
+  echo
+  echo "Not installing conda because \"INSTALL_CONDA\" is not set to \"true\":"
+  echo "  INSTALL_CONDA = \"${INSTALL_CONDA}\""
 fi
-echo
-echo "Done with conda installation."
 
 # Conda environment should have linux utilities to perform these tasks on macos.
 MPAS_APP_DIR=$(cd "$(dirname "$(readlink -f -n "${BASH_SOURCE[0]}" )" )" && pwd -P)
-CONDA_BUILD_DIR="$(readlink -f "${CONDA_BUILD_DIR}")"
 EXEC_DIR=${EXEC_DIR:-${MPAS_APP_DIR}/exec}
-echo ${CONDA_BUILD_DIR} > ${MPAS_APP_DIR}/conda_loc
 
 # Stop if --conda-only was specified on the command line.
 if [ "${CONDA_ONLY}" = true ]; then
