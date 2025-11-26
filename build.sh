@@ -385,6 +385,24 @@ fi
 MACHINE="${PLATFORM}"
 printf "PLATFORM(MACHINE)=${PLATFORM}\n" >&2
 
+MPAS_APP_DIR=$(cd "$(dirname "$(readlink -f -n "${BASH_SOURCE[0]}" )" )" && pwd -P)
+
+# The installation process for conda cannot handle absolute paths to the
+# mpas_app root directory that contain more than the maximimum number of
+# characters specified below (MPAS_APP_DIR_MAX_LEN).  It's not clear where
+# this restriction comes from (possibly in mamba).  Check for this.
+MPAS_APP_DIR_MAX_LEN=108
+if [ ${#MPAS_APP_DIR} -gt ${MPAS_APP_DIR_MAX_LEN} ]; then
+  echo
+  echo "The number of characters in the absolute path to the mpas_app root"
+  echo "directory (MPAS_APP_DIR) cannot be more than ${MPAS_APP_DIR_MAX_LEN} (but is):"
+  echo "  MPAS_APP_DIR = \"${MPAS_APP_DIR}\"" 
+  echo "  \${#MPAS_APP_DIR} = ${#MPAS_APP_DIR}" 
+  echo "Please clone mpas_app in a location with an absolue path that is within"
+  echo "this limit and retry the build.  Stopping."
+  exit
+fi
+
 if [ "${INSTALL_CONDA}" = true ]; then
 
   if [ ! -d "${CONDA_BUILD_DIR}" ]; then
