@@ -129,6 +129,11 @@ def main(user_config_files: list[Path, str]) -> None:
         mesh_label = experiment_config["user"]["mesh_label"]
         expt_name = '.'.join([mesh_label, expt_name])
 
+#        # Add the build type ("debug" or "optimized") as a suffix to the experiment
+#        # name.
+#        build_type = experiment_config["user"]["build_type"]
+#        expt_name = '.'.join([expt_name, build_type])
+
     print(f"{expt_name = }")
 
     # Append the experiment name to experiment_dir to get the final experiment
