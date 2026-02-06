@@ -1,11 +1,26 @@
 user:
   cycle_frequency: 12
-  # The experiment directory will be set by the experiment generation script
-  # using the name of the config file it is passed and the directory in which
-  # it (the generation script) is located.  Thus, it can be left unspecified
-  # here.
-  #experiment_dir: /scratch4/BMC/fv3lam/Gerard.Ketefian/mpas_stuff_modify_with_stoch/expt_dirs/test_02
-  #experiment_dir: ''
+  #
+  # If the experiment directory is absolute, that will be used.  If it is
+  # relative, then it will be relative to the default location where experiment
+  # directories are created, which is a directory named "expt_dirs" on the
+  # same level as the mpas_app directory.  Setting experiment_dir to an
+  # empty string or to nothing (no value specified) will result in experiment_dir
+  # being set to the default location.
+#  experiment_dir: '/spptint_runs/../abc'
+#  experiment_dir: 'spptint_runs/../abc'
+#  experiment_dir: ''
+#  experiment_dir: 'spptint_sensitivity_tests.pat1_only_l1_50km.output_start_end_only'
+  experiment_dir:
+  #
+  # If create_expt_name is set to True, the experiment name will be generated
+  # from the names of the config files on the command line (passed as arguments
+  # to experiment_gen.py), and this name will be appended to the end of
+  # experiment_dir specified above.
+  #
+#  create_expt_name: False
+  create_expt_name: True
+#
   first_cycle: !!timestamp 2023-09-15T00:00:00
   last_cycle:  !!timestamp 2023-09-15T00:00:00
   mesh_label: conus_3km
@@ -15,7 +30,8 @@ user:
     - cold_start.yaml
 
 data:
-  mesh_files: /scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_vary_MPAS_hash/meshes
+#  mesh_files: /scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_vary_MPAS_hash/meshes
+  mesh_files: /scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/generate_static_conus_3km
 
 platform:
   scheduler: slurm
