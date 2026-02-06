@@ -75,6 +75,8 @@ workflow:
     task_get_ics_data: !remove
     task_get_lbcs_data: !remove
     task_ungrib: !remove
+#    task_create_ics: !remove
+#    task_create_lbcs: !remove
     task_mpas_ics: !remove
     task_mpas_lbcs: !remove
 #    task_mpas:
