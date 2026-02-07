@@ -87,13 +87,13 @@ def main(user_config_files: list[Path, str]) -> None:
 
     print(f'{experiment_dir = }')
 
-
-    # If create_expt_name in the config file is set to True, form a name
-    # for the experiment from the names of the config files passed on the
-    # command line.
+    # If create_expt_name in the config file is False, get the name of the 
+    # experiment from the last file or directory element in the absolute path
+    # in experiment_dir.  If create_expt_name is True, form a name for the
+    # experiment from the names of the config files passed on the command line.
     create_expt_name = experiment_config["user"]["create_expt_name"]
     if not create_expt_name:
-        expt_name = ''
+        expt_name = experiment_dir.name
     else:
         # Get the name of the experiment from the name of the last user config file
         # specified on the command line.
@@ -145,10 +145,9 @@ def main(user_config_files: list[Path, str]) -> None:
     # Reset experiment_dir in the config dictionary to the final path created above.
     experiment_config["user"]["experiment_dir"] = str(experiment_path)
 
-
+    # If the experiment directory already exists, rename it by appending the
+    # current date and time to its name.
     if experiment_path.exists():
-        # If the experiment directory already exists, rename it by appending the
-        # current date and time to its name.
         crnt_datetime = datetime.now()
         crnt_datetime_str = crnt_datetime.strftime("%Y%m%d_%H%M%S")
         expt_name_old = '.'.join([expt_name, crnt_datetime_str])
