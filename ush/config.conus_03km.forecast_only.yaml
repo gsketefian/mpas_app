@@ -10,22 +10,44 @@ user:
 #  experiment_dir: '/spptint_runs/../abc'
 #  experiment_dir: 'spptint_runs/../abc'
 #  experiment_dir: ''
+#  experiment_dir:
 #  experiment_dir: 'spptint_sensitivity_tests.pat1_only_l1_50km.output_start_end_only'
-  experiment_dir:
+#  experiment_dir: 'my_experiment'
+#  experiment_dir: 'spptint_none_0_60_120_600_7200_sec.pat1_only_l1_50km.output_start_end_only'
+#  experiment_dir: 'sppt_timing_tests/conus_03km'
+#  experiment_dir: "sppt_timing_tests/{{ user.mesh_label }}"
   #
-  # If create_expt_name is set to True, the experiment name will be generated
-  # from the names of the config files on the command line (passed as arguments
-  # to experiment_gen.py), and this name will be appended to the end of
-  # experiment_dir specified above.
+  # If expt_basedir is set to an absolute path, it will be used as is.  If
+  # it is not set or is set to an empty string, it will be set to a default
+  # absolute path (currently specified in experiment_gen.py).  If it is set
+  # to a relative path, it will be appended to the default path.  The path
+  # to the experiment is then formed by appending the experiment name 
+  # (expt_name below) to expt_basedir.
+  #
+#  expt_basedir:
+  expt_basedir: "sppt_timing_tests/{{ user.mesh_label }}"
+  #
+  # If expt_name is not set or is set to an empty string, it will be formed
+  # from the name of the last config file passed to the experiment_gen.py
+  # script.
+  #
+  expt_name: 
+  #
+  # If create_expt_name in the config file is False, the name of the experiment
+  # will be obtained from the last file or directory element in the absolute
+  # path in experiment_dir.  If create_expt_name is True, the experiment name
+  # is formed from the names of the config files passed on the command line.
   #
 #  create_expt_name: False
   create_expt_name: True
 #
+# Note that !!timestamp will convert the given date and time such that
+# first_cycle (for example) gets reset to this format (in Jinja2 syntax):
+#
+#   "{{ user.first_cycle.strftime('%Y%m%d%H') }}"
+#
   first_cycle: !!timestamp 2023-09-15T00:00:00
   last_cycle:  !!timestamp 2023-09-15T00:00:00
-#  first_cycle: 2023091500
-#  last_cycle: 2023091500
-  first_cycle_YYYYMMDDHH: 2023091500  # How can we extract this from first_cycle above??
 #
   mesh_label: conus_03km
   mpas_app: ''
@@ -43,12 +65,9 @@ auxil:
   hailaware_str: '{%- if user.config_mp == "mp_tempo" -%}_HAILAWARE{%-endif-%}'
 
 data:
-  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/meshes"
-#  staged_ics_lbcs_dir: /scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/mpas_ics_lbcs_2023091500
+#  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/meshes"
+  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/generate_static_conus_3km"
   staged_ics_lbcs_dir: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/mpas_staged_ics_lbcs"
-#  abcd: "{{ data.staged_ics_lbcs_dir }}/{{ !!timestamp user.first_cycle }}/{{ user.mesh_label }}/{{ user.mesh_label }}.init.nc"
-#  abcd: "{{ data.staged_ics_lbcs_dir }}/" !!timestamp user.first_cycle "/{{ user.mesh_label }}/{{ user.mesh_label }}.init.nc"
-#  abcd: "{{ data.staged_ics_lbcs_dir }}/{{ user.first_cycle }}/{{ user.mesh_label }}/{{ user.mesh_label }}.init.nc"
 
 platform:
   scheduler: slurm
@@ -279,7 +298,7 @@ forecast:
       mpicmd: srun
     files_to_copy:
 #      "{{ user.mesh_label }}.init.nc": "{{ create_ics.mpas_init['rundir'] }}/{{ user.mesh_label }}.init.nc"
-      "{{ user.mesh_label }}.init.nc": "{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}/{{user.first_cycle_YYYYMMDDHH}}/{{ user.mesh_label }}.init.nc"
+      "{{ user.mesh_label }}.init.nc": "{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}/{{user.first_cycle.strftime('%Y%m%d%H')}}/{{ user.mesh_label }}.init.nc"
       "{{ user.mesh_label }}.graph.info.part.{{forecast.mpas['execution']['batchargs']['cores']}}": '{{ user.experiment_dir }}/{{ user.mesh_label }}.graph.info.part.{{forecast.mpas["execution"]["batchargs"]["cores"]}}'
       stream_list.atmosphere.diagnostics: "{{ user.mpas_app }}/parm/mpas/stream_list.atmosphere.diagnostics"
       stream_list.atmosphere.output: "{{ user.mpas_app }}/parm/mpas/stream_list.atmosphere.output"
@@ -311,8 +330,9 @@ forecast:
       interval_hours: 6
       offset: 0
 #      path: "{{ create_lbcs.mpas_init['rundir'] }}"
-      path: "{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}/{{ user.first_cycle_YYYYMMDDHH }}"
+      path: "{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}/{{ user.first_cycle.strftime('%Y%m%d%H') }}"
     length: 6
+#    length: 3
     namelist:
       base_file: "{{ user.mpas_app }}/src/MPAS-Model/namelist.atmosphere"
       update_values:
