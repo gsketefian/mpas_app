@@ -332,7 +332,6 @@ forecast:
 #      path: "{{ create_lbcs.mpas_init['rundir'] }}"
       path: "{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}/{{ user.first_cycle.strftime('%Y%m%d%H') }}"
     length: 6
-#    length: 3
     namelist:
       base_file: "{{ user.mpas_app }}/src/MPAS-Model/namelist.atmosphere"
       update_values:

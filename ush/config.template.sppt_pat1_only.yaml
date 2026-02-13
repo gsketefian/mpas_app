@@ -1,0 +1,13 @@
+user:
+  expt_basedir:
+
+forecast:
+  mpas:
+    namelist:
+      update_values:
+        nam_stochy:
+          do_sppt:
+          config_spptint:
+          config_sppt_2: 0.0
+          config_sppt_3: 0.0
+          config_sppt_lscale_1:
