@@ -1,0 +1,14 @@
+# Ignore the "conda" directory at the top level.  
+# The leading / ensures it only matches the conda directory at the repository
+# root, and the trailing / indicates it's a directory.
+/conda/
+
+# Python compiled files.
+#
+# Not including a leading slash will cause "__pychache__" directories everywhere
+# to be ignored.
+__pycache__/
+# These ignore individual compiled Python files (.pyc and .pyo).
+*.pyc
+*.pyo
+
