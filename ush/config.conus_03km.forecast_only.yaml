@@ -49,7 +49,7 @@ user:
   first_cycle: !!timestamp 2023-09-15T00:00:00
   last_cycle:  !!timestamp 2023-09-15T00:00:00
 #
-  mesh_label: conus_15km
+  mesh_label: conus_03km
   mpas_app: ''
   platform: hera
 ##  build_type: 'debug'
@@ -65,8 +65,8 @@ auxil:
   hailaware_str: '{%- if user.config_mp == "mp_tempo" -%}_HAILAWARE{%-endif-%}'
 
 data:
-#  mesh_files: "/scratch4/BMC/fv3lam/mayfield/mpas_stoch/meshes/15km-conus"
-  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_vary_MPAS_hash/meshes"
+#  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/meshes"
+  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/generate_static_conus_3km"
   staged_ics_lbcs_dir: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/mpas_staged_ics_lbcs"
 
 platform:
@@ -276,7 +276,9 @@ forecast:
     execution:
       batchargs:
 #        cores: 32
-        cores: 80
+#        cores: 80
+        cores: 1000
+#        cores: 2400
 #        walltime: 00:30:00
         walltime: 02:30:00
         native: '--exclusive'
@@ -334,7 +336,7 @@ forecast:
       base_file: "{{ user.mpas_app }}/src/MPAS-Model/namelist.atmosphere"
       update_values:
         nhyd_model:
-          config_dt: 60.0
+          config_dt: 10.0
         limited_area:
           config_apply_lbcs: true
         decomposition:

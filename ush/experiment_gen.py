@@ -21,6 +21,9 @@ from pprint import pprint
 from textwrap import dedent
 from datetime import datetime
 
+from copy import deepcopy
+#from deepdiff import DeepDiff
+
 def create_grid_files(expt_dir: Path, mesh_file_path: Path, nprocs: int) -> None:
     """
     Stage the mesh file in the experiment directory and decompose them for the current experiment.
@@ -49,23 +52,63 @@ def main(user_config_files: list[Path, str]) -> None:
     """
 
     # Set up the experiment
-    # mpas_app is the base directory of the MPAS App clone on the local
-    # platform.
+
+    # Set mpas_app to the base directory of the MPAS App clone on the local
+    # platform.  This is obtained from this file's path, which is in turn
+    # assumed to be located one directory level below the MPAS App base
+    # directory.
     mpas_app = Path(os.path.dirname(__file__)).parent.absolute()
-    experiment_config = uwconfig.get_yaml_config(Path("./default_config.yaml"))
+
+    # Create a YAMLConfig object (which is pretty much a dictionary) containing
+    # the user-specified configuration.  This is done using the set of user 
+    # config files passed to this function.
     user_config = None
     for cfg_file in user_config_files:
+        # Get the configuration in the current user config file.  Note that
+        # get_yaml_config() creates and returns a YAMLConfig object containing
+        # the raw config data in the specified file.  It just parses the YAML
+        # without performing any Jinja2 rendering.  Note also that a YAMLConfig
+        # object can be used like a regular dictionary.
         cfg = uwconfig.get_yaml_config(cfg_file)
         if not user_config:
             user_config = cfg
             continue
+        # Update the values in user_config with the ones in cfg.  Note that
+        # the update_values() method performs a deep (recursive) merge of one
+        # config into another, modifying the target in place (but it does not
+        # perform any Jinja2 rendering).
         user_config.update_values(cfg)
 
+    # Use the realize_to_dict() function to resolve any Jinja2 variables in the
+    # "user:" section of the user_config dictionary (really a YAMLConfig object.
+    # This is necessary because in the "user:" section, the experiment_dir key
+    # may have a dependency on the mesh_label key, and experiment_dir is needed
+    # right away before the rest of user_config is rendered further below.
+    tmp = deepcopy(user_config)
+    rendered = uwconfig.realize_to_dict(input_config=tmp, update_config={})
+#    user_section = rendered["user"]
+#    user_config["user"] = user_section
+    user_config["user"] = rendered["user"]
+
+    # Get the name of the platform (machine) from the user_config dictionary.
+    # From that, form the path to the platform config file.
     machine = user_config["user"]["platform"]
     platform_config = uwconfig.get_yaml_config(mpas_app / "parm" / "machines" / f"{machine}.yaml")
 
+    # Get the default experiment configuration from the default config file.
+    experiment_config = uwconfig.get_yaml_config(Path("./default_config.yaml"))
+
+    # Update the default experiment config first with the platform config and
+    # then with the user config.  Thus, the user config has highest priority.
+    # The iteration variable "supp_config" probably stands for "supplemental
+    # configuration".
     for supp_config in (platform_config, user_config):
         experiment_config.update_values(supp_config)
+
+#    print(f'')
+#    print(f'AAAAAAAAAAAAA')
+#    print(f'{experiment_config = }')
+#    lkasdfljasldkfjalsdkfjas
 
     experiment_config["user"]["mpas_app"] = mpas_app.as_posix()
 
@@ -73,95 +116,105 @@ def main(user_config_files: list[Path, str]) -> None:
 
     # Get the specified experiment directory and convert it to a PosixPath
     # object.
-    experiment_dir = experiment_config["user"]["experiment_dir"]
-    if not experiment_dir: experiment_dir = ''
-    experiment_dir = Path(experiment_dir)
+    expt_basedir = experiment_config["user"]["expt_basedir"]
+    if not expt_basedir: expt_basedir = ''
+    # Convert string path to path object.
+    expt_basedir = Path(expt_basedir)
 
-    # If experiment_dir is a relative path, prepend to it the default base
-    # directory in which experiment directories are created. 
-    if not os.path.isabs(experiment_dir):
-        experiment_dir = Path(mpas_app) / '..' / 'expt_dirs' / experiment_dir
-
+    # If expt_basedir is a relative path or is an empty string (or is None),
+    # prepend to it the default base directory in which experiment directories
+    # are created. 
+    if not os.path.isabs(expt_basedir):
+        expt_basedir = Path(mpas_app) / '..' / 'expt_dirs' / expt_basedir
     # Resolve the path to get rid of '.', '..', symlinks, etc.
-    experiment_dir = experiment_dir.resolve()
+    expt_basedir = expt_basedir.resolve()
 
-    print(f'{experiment_dir = }')
+    print(f'{expt_basedir = }')
 
+    expt_name = experiment_config["user"]["expt_name"]
 
-    # If create_expt_name in the config file is set to True, form a name
-    # for the experiment from the names of the config files passed on the
-    # command line.
+    # If create_expt_name in the config file is False, get the name of the 
+    # experiment from the last file or directory element in the absolute path
+    # in experiment_dir.  If create_expt_name is True, form a name for the
+    # experiment from the names of the config files passed on the command line.
     create_expt_name = experiment_config["user"]["create_expt_name"]
-    if not create_expt_name:
-        expt_name = ''
-    else:
-        # Get the name of the experiment from the name of the last user config file
-        # specified on the command line.
+
+    # If expt_name is not specified or create_expt_name is True, construct
+    # expt_name from the config file(s) passed to this script.
+    if not expt_name or create_expt_name:
+
         last_config_file = str(user_config_files[-1])
-#        start_str = 'config.'
-#        end_str = '.yaml'
-#        start_index = last_config_file.find(start_str) + len(start_str)
-#        end_index = last_config_file.find(end_str, start_index)
-#        expt_name = last_config_file[start_index:end_index]
-        # Set the experiment name to the substring between the last two dots in the
-        # name of the config file specified on the command line.  For example, if
-        # the name of that config file is config.abc.def.yaml, then the name of the
-        # experiment (thus far) will be "def".
-        substr = '.'
-        substr_count = last_config_file.count(substr)
-        if substr_count < 2:
+
+        sepstr = '.'
+        sepstr_count = last_config_file.count(sepstr)
+        if sepstr_count < 2:
             msg = dedent(f"""
-                There must be at least two occurrences of the substring '{substr}' in the name
+                There must be at least two occurrences of the substring '{sepstr}' in the name
                 of the last configuration file specified on the command line (last_config_file),
                 but this is not the case:
                     {last_config_file = }
-                    {substr_count = }
+                    {sepstr_count = }
                 Stopping.
                 """)
             logging.error(msg)
             raise ValueError(msg)
-        else:
-            last_index = last_config_file.rfind(substr)
-            next_to_last_index = last_config_file.rfind(substr, 0, last_index)
-            expt_name = last_config_file[next_to_last_index+1:last_index]
 
-        # Add the mesh name (label) to the start of the experiment name.
-        mesh_label = experiment_config["user"]["mesh_label"]
-        expt_name = '.'.join([mesh_label, expt_name])
+        first_indx = last_config_file.find(sepstr)
+        last_indx = last_config_file.rfind(sepstr)   # "r" in rfind stands for "rightmost" occurrence
+        next_to_last_indx = last_config_file.rfind(sepstr, 0, last_indx)
+
+        indx_end = last_indx
+        if create_expt_name:
+            indx_start = next_to_last_indx 
+        else:
+            indx_start = first_indx
+        expt_name = last_config_file[indx_start+1:indx_end]
+
+        # If create_expt_name set to True, make custom modifications to expt_name.
+        if create_expt_name:
+            # Add the mesh name (label) to the start of the experiment name.
+            mesh_label = experiment_config["user"]["mesh_label"]
+            expt_name = '.'.join([mesh_label, expt_name])
+#            # Add the build type ("debug" or "optimized") as a suffix to the experiment
+#            # name.
+#            build_type = experiment_config["user"]["build_type"]
+#            expt_name = '.'.join([expt_name, build_type])
 
     print(f"{expt_name = }")
 
-    # Append the experiment name to experiment_dir to get the final experiment
+    # Append the experiment name to expt_dir to get the final experiment
     # path.  Then resolve the path.
-    experiment_path = experiment_dir / expt_name
-    experiment_path = experiment_path.resolve()
-    print(f'{experiment_path = }')
+    expt_dir = expt_basedir / expt_name
+    expt_dir = expt_dir.resolve()
 
-    # Reset experiment_dir in the config dictionary to the final path created above.
-    experiment_config["user"]["experiment_dir"] = str(experiment_path)
+    print(f'{expt_dir = }')
 
+    # (Re)set experiment_dir in the config dictionary to the final path created
+    # above.  experiment_dir should be removed in the default config dictionary
+    # since it is not needed now that there are expt_basedir and expt_name
+    # (which should be added to the default dictionary).
+    experiment_config["user"]["experiment_dir"] = str(expt_dir)
 
-    if experiment_path.exists():
-        # If the experiment directory already exists, rename it by appending the
-        # current date and time to its name.
+    # If the experiment directory already exists, rename it by appending the
+    # current date and time to its name.
+    if expt_dir.exists():
         crnt_datetime = datetime.now()
         crnt_datetime_str = crnt_datetime.strftime("%Y%m%d_%H%M%S")
         expt_name_old = '.'.join([expt_name, crnt_datetime_str])
-        experiment_path_renamed = experiment_path / '..'/ expt_name_old
-        experiment_path_renamed = experiment_path_renamed.resolve()
+        expt_dir_renamed = expt_dir / '..'/ expt_name_old
+        expt_dir_renamed = expt_dir_renamed.resolve()
         msg = dedent(f"""
-            The experiment directory (experiment_path) already exists:
-                {experiment_path = }
+            The experiment directory (expt_dir) already exists:
+                {expt_dir = }
             Moving (renaming) existing directory to:
-                {experiment_path_renamed = }
+                {expt_dir_renamed = }
             """)
         logging.info(msg)
-        experiment_path.rename(experiment_path_renamed)
+        expt_dir.rename(expt_dir_renamed)
 
-    # Build the experiment directory
-    experiment_path = Path(experiment_config["user"]["experiment_dir"])
-    print("Experiment will be set up here: {}".format(experiment_path))
-    os.makedirs(experiment_path, exist_ok=True)
+    # Create the experiment directory.
+    print("Experiment will be set up here: {}".format(expt_dir))
+    os.makedirs(expt_dir, exist_ok=True)
 
     # Get configuration parameters associated with launching the workflow.
     wflow_launch_config = experiment_config["wflow_launch"]
@@ -171,9 +224,9 @@ def main(user_config_files: list[Path, str]) -> None:
     # Copy the workflow launch script and wrapper script that runs it from
     # the MPAS App clone into the experiment directory.    
     wflow_launch_script_fp = mpas_app / 'ush' / wflow_launch_script_fn
-    copy(wflow_launch_script_fp, experiment_path / wflow_launch_script_fn)
+    copy(wflow_launch_script_fp, expt_dir / wflow_launch_script_fn)
     wflow_launch_wrapper_fp = mpas_app / 'ush' / wflow_launch_wrapper_fn
-    copy(wflow_launch_wrapper_fp, experiment_path / wflow_launch_wrapper_fn)
+    copy(wflow_launch_wrapper_fp, expt_dir / wflow_launch_wrapper_fn)
     #
     # -----------------------------------------------------------------------
     #
@@ -195,7 +248,7 @@ def main(user_config_files: list[Path, str]) -> None:
 
         crontab_line = (
             f"""*/{cron_relaunch_intvl_mnts} * * * * """
-            f"""cd {experiment_path} && """
+            f"""cd {expt_dir} && """
             f"""./{wflow_launch_wrapper_fn} >> ./{wflow_launch_log_fn} 2>&1"""
         )
 
@@ -207,23 +260,29 @@ def main(user_config_files: list[Path, str]) -> None:
 
         add_crontab_line(called_from_cron=False, machine=platform,
                          crontab_line=crontab_line,
-                         exptdir=experiment_path, debug=False)
-
-
+                         exptdir=expt_dir, debug=False)
 
     # Load the workflow definition
     workflow_blocks = experiment_config["user"]["workflow_blocks"]
     workflow_blocks = [mpas_app / "parm" / "wflow" / b for b in workflow_blocks]
 
+    # Create a new dictionary, workflow_config, containing the settings in
+    # the yaml config files listed under the workflow_blocks key in the
+    # experiment_config dictionary.
     workflow_config = None
     for workflow_block in workflow_blocks:
         if workflow_config is None:
             workflow_config = uwconfig.get_yaml_config(workflow_block)
         else:
             workflow_config.update_values(uwconfig.get_yaml_config(workflow_block))
+    # Update the values in workflow_config with the values in the YAMLConfig 
+    # object experiment_config set above.
     workflow_config.update_values(experiment_config)
 
-    experiment_file = experiment_path / Path("experiment.yaml")
+    experiment_file = expt_dir / Path("experiment.yaml")
+
+    # Create the yaml file containing the complete experiment configuration.
+    # Note that realize() performs jinja2 rendering.
     uwconfig.realize(
         input_config=workflow_config,
         output_file=experiment_file,
@@ -231,16 +290,20 @@ def main(user_config_files: list[Path, str]) -> None:
     )
 
     # Create the workflow files
-    rocoto_xml = experiment_path / Path("rocoto.xml")
+    rocoto_xml = expt_dir / Path("rocoto.xml")
     rocoto_valid = uwrocoto.realize(config=experiment_file, output_file=rocoto_xml)
     if not rocoto_valid:
         sys.exit(1)
 
-    # Create grid files
+    # Create grid file.
     mesh_file_name = f"{experiment_config['user']['mesh_label']}.graph.info"
     mesh_file_path = Path(experiment_config["data"]["mesh_files"]) / mesh_file_name
 
+    # Completely reset experiment_config to the values in the experiment
+    # configuration file.  This will update (resolve) any jinja2 variables
+    # that were updated above (but not necessarily all of them).
     experiment_config = uwconfig.get_yaml_config(config=experiment_file)
+
     all_nprocs = []
     for sect, driver in (
         ("create_ics", "mpas_init"),
@@ -253,9 +316,9 @@ def main(user_config_files: list[Path, str]) -> None:
                 cores = resources["nodes"] * resources["tasks_per_node"]
             all_nprocs.append(cores)
     for nprocs in all_nprocs:
-        if not (experiment_path / f"{mesh_file_path.name}.part.{nprocs}").is_file():
+        if not (expt_dir / f"{mesh_file_path.name}.part.{nprocs}").is_file():
             print(f"Creating grid partitioning file for {nprocs} procs")
-            create_grid_files(experiment_path, mesh_file_path, nprocs)
+            create_grid_files(expt_dir, mesh_file_path, nprocs)
 
 
 if __name__ == "__main__":
