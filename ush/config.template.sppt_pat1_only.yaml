@@ -3,8 +3,14 @@ user:
 
 forecast:
   mpas:
+    execution:
+      batchargs:
+        cores:
+    length:
     namelist:
       update_values:
+        nhyd_model:
+          config_dt:
         nam_stochy:
           do_sppt:
           config_spptint:
