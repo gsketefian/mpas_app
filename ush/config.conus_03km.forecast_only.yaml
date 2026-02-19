@@ -1,22 +1,6 @@
 user:
   cycle_frequency: 12
   #
-  # If the experiment directory is absolute, that will be used.  If it is
-  # relative, then it will be relative to the default location where experiment
-  # directories are created, which is a directory named "expt_dirs" on the
-  # same level as the mpas_app directory.  Setting experiment_dir to an
-  # empty string or to nothing (no value specified) will result in experiment_dir
-  # being set to the default location.
-#  experiment_dir: '/spptint_runs/../abc'
-#  experiment_dir: 'spptint_runs/../abc'
-#  experiment_dir: ''
-#  experiment_dir:
-#  experiment_dir: 'spptint_sensitivity_tests.pat1_only_l1_50km.output_start_end_only'
-#  experiment_dir: 'my_experiment'
-#  experiment_dir: 'spptint_none_0_60_120_600_7200_sec.pat1_only_l1_50km.output_start_end_only'
-#  experiment_dir: 'sppt_timing_tests/conus_03km'
-#  experiment_dir: "sppt_timing_tests/{{ user.mesh_label }}"
-  #
   # If expt_basedir is set to an absolute path, it will be used as is.  If
   # it is not set or is set to an empty string, it will be set to a default
   # absolute path (currently specified in experiment_gen.py).  If it is set
@@ -24,22 +8,24 @@ user:
   # to the experiment is then formed by appending the experiment name 
   # (expt_name below) to expt_basedir.
   #
-#  expt_basedir:
-  expt_basedir: "sppt_timing_tests/{{ user.mesh_label }}"
+  expt_basedir:
+#  expt_basedir: "sppt_timing_tests/{{ user.mesh_label }}"
   #
-  # If expt_name is not set or is set to an empty string, it will be formed
-  # from the name of the last config file passed to the experiment_gen.py
-  # script.
+  # Set the experiment name.  If this is set to an empty string (or is not
+  # set at all) or if create_expt_name below is set to True, the experiment
+  # name will be formed from the name of the last config file passed to the
+  # experiment_gen.py script and, if create_expt_name is set to True, possibly
+  # other parameters such as the mesh name.
   #
   expt_name: 
   #
-  # If create_expt_name in the config file is False, the name of the experiment
-  # will be obtained from the last file or directory element in the absolute
-  # path in experiment_dir.  If create_expt_name is True, the experiment name
-  # is formed from the names of the config files passed on the command line.
+  # If create_expt_name is True, the experiment name is always formed from
+  # the name of the last config file passed on the command line to the
+  # experiment_gen.py script and possibly other parameters such as the mesh
+  # name, and the value of expt_name above is ignored.
   #
-#  create_expt_name: False
-  create_expt_name: True
+  create_expt_name: False
+#  create_expt_name: True
 #
 # Note that !!timestamp will convert the given date and time such that
 # first_cycle (for example) gets reset to this format (in Jinja2 syntax):
@@ -276,11 +262,12 @@ forecast:
     execution:
       batchargs:
 #        cores: 32
-#        cores: 80
-        cores: 1000
-#        cores: 2400
+#        cores: 128
+#        cores: 1000
+        cores: 2400
 #        walltime: 00:30:00
         walltime: 02:30:00
+#        walltime: 08:00:00
         native: '--exclusive'
         maxtries: 1
         # This could be set to 'bigmem' on hera to access the big memory nodes there.
@@ -332,11 +319,15 @@ forecast:
 #      path: "{{ create_lbcs.mpas_init['rundir'] }}"
       path: "{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}/{{ user.first_cycle.strftime('%Y%m%d%H') }}"
     length: 6
+#    length: 3
     namelist:
       base_file: "{{ user.mpas_app }}/src/MPAS-Model/namelist.atmosphere"
       update_values:
         nhyd_model:
+#          config_dt: 60.0
           config_dt: 10.0
+#          config_dt: 30.0
+#          config_dt: 20.0
         limited_area:
           config_apply_lbcs: true
         decomposition:
