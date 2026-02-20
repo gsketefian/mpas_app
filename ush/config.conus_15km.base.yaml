@@ -1,22 +1,6 @@
 user:
   cycle_frequency: 12
   #
-  # If the experiment directory is absolute, that will be used.  If it is
-  # relative, then it will be relative to the default location where experiment
-  # directories are created, which is a directory named "expt_dirs" on the
-  # same level as the mpas_app directory.  Setting experiment_dir to an
-  # empty string or to nothing (no value specified) will result in experiment_dir
-  # being set to the default location.
-#  experiment_dir: '/spptint_runs/../abc'
-#  experiment_dir: 'spptint_runs/../abc'
-#  experiment_dir: ''
-#  experiment_dir:
-#  experiment_dir: 'spptint_sensitivity_tests.pat1_only_l1_50km.output_start_end_only'
-#  experiment_dir: 'my_experiment'
-#  experiment_dir: 'spptint_none_0_60_120_600_7200_sec.pat1_only_l1_50km.output_start_end_only'
-#  experiment_dir: 'sppt_timing_tests/conus_03km'
-#  experiment_dir: "sppt_timing_tests/{{ user.mesh_label }}"
-  #
   # If expt_basedir is set to an absolute path, it will be used as is.  If
   # it is not set or is set to an empty string, it will be set to a default
   # absolute path (currently specified in experiment_gen.py).  If it is set
@@ -27,17 +11,6 @@ user:
   expt_basedir:
 #  expt_basedir: "sppt_timing_tests/{{ user.mesh_label }}"
   #
-  # If expt_name is not set or is set to an empty string, it will be formed
-  # from the name of the last config file passed to the experiment_gen.py
-  # script.
-  #
-  expt_name: 
-  #
-  # If create_expt_name in the config file is False, the name of the experiment
-  # will be obtained from the last file or directory element in the absolute
-  # path in experiment_dir.  If create_expt_name is True, the experiment name
-  # is formed from the names of the config files passed on the command line.
-========
   # Set the experiment name.  If this is set to an empty string (or is not
   # set at all) or if create_expt_name below is set to True, the experiment
   # name will be formed from the name of the last config file passed to the
@@ -50,7 +23,6 @@ user:
   # the name of the last config file passed on the command line to the
   # experiment_gen.py script and possibly other parameters such as the mesh
   # name, and the value of expt_name above is ignored.
->>>>>>>> gsl/MPAS_stoch_physics:ush/config.conus_15km.base.yaml
   #
   create_expt_name: False
 #  create_expt_name: True
@@ -80,10 +52,6 @@ auxil:
 
 data:
 #  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_vary_MPAS_hash/meshes"
-<<<<<<<< HEAD:ush/config.conus_03km.base.yaml
-  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/generate_static_conus_3km"
-
-========
   mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/mesh_and_static_files"
 
 platform:
