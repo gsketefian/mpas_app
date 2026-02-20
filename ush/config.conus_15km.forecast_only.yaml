@@ -51,7 +51,6 @@ auxil:
   hailaware_str: '{%- if user.config_mp == "mp_tempo" -%}_HAILAWARE{%-endif-%}'
 
 data:
-#  mesh_files: "/scratch4/BMC/fv3lam/mayfield/mpas_stoch/meshes/15km-conus"
 #  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_vary_MPAS_hash/meshes"
   mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/mesh_and_static_files"
   staged_ics_lbcs_dir: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/mpas_staged_ics_lbcs"
