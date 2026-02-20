@@ -24,8 +24,8 @@ user:
   # to the experiment is then formed by appending the experiment name 
   # (expt_name below) to expt_basedir.
   #
-#  expt_basedir:
-  expt_basedir: "sppt_timing_tests/{{ user.mesh_label }}"
+  expt_basedir:
+#  expt_basedir: "sppt_timing_tests/{{ user.mesh_label }}"
   #
   # If expt_name is not set or is set to an empty string, it will be formed
   # from the name of the last config file passed to the experiment_gen.py
@@ -38,8 +38,8 @@ user:
   # path in experiment_dir.  If create_expt_name is True, the experiment name
   # is formed from the names of the config files passed on the command line.
   #
-#  create_expt_name: False
-  create_expt_name: True
+  create_expt_name: False
+#  create_expt_name: True
 #
 # Note that !!timestamp will convert the given date and time such that
 # first_cycle (for example) gets reset to this format (in Jinja2 syntax):

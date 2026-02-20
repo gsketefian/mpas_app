@@ -65,8 +65,9 @@ auxil:
   hailaware_str: '{%- if user.config_mp == "mp_tempo" -%}_HAILAWARE{%-endif-%}'
 
 data:
-  #mesh_files: "/scratch4/BMC/fv3lam/mayfield/mpas_stoch/meshes/15km-conus"
-  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_vary_MPAS_hash/meshes"
+#  mesh_files: "/scratch4/BMC/fv3lam/mayfield/mpas_stoch/meshes/15km-conus"
+#  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_vary_MPAS_hash/meshes"
+  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/mesh_and_static_files"
 
 platform:
   scheduler: slurm
@@ -81,7 +82,7 @@ wflow_launch:
 cron:
   use_cron_to_relaunch: True
   cron_relaunch_intvl_mnts: 1
-  # This will be set by the experiment generation script, so it doesn't matter what it 
+  # This will be set by the experiment generation script, so it doesn't matter what it
   # is set to here.  Leave it to its default value.
   crontab_line: None
 
@@ -136,6 +137,7 @@ create_ics:
     execution:
       batchargs:
         cores: 12
+        #walltime: 01:30:00
         walltime: 00:30:00
         native: ''
         maxtries: 1
@@ -167,10 +169,10 @@ create_ics:
       RRTMG_SW_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/RRTMG_SW_DATA.DBL"
       SOILPARM.TBL: "{{ user.mpas_app }}/src/MPAS-Model/SOILPARM.TBL"
       VEGPARM.TBL: "{{ user.mpas_app }}/src/MPAS-Model/VEGPARM.TBL"
-      MP_THOMPSON_QRacrQG_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QRacrQG_DATA.DBL"
-      MP_THOMPSON_QRacrQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QRacrQS_DATA.DBL"
-      MP_THOMPSON_freezeH2O_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_freezeH2O_DATA.DBL"
-      MP_THOMPSON_QIautQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QIautQS_DATA.DBL"
+      MP_{{auxil.MP_NAME}}_freezeH2O_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_freezeH2O_DATA.DBL"
+      MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL"
+      MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL"
+      MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL"
     namelist:
       base_file: "{{ user.mpas_app }}/src/MPAS-Model/namelist.init_atmosphere"
       update_values: &mpas_init_update_values
