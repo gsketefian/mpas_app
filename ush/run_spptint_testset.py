@@ -3,59 +3,28 @@ import shutil
 import experiment_gen
 import uwtools.api.config as uwconfig
 
-def run_spptint_testset(mesh_label, lscale_1, dosppt_vals, spptint_vals, num_runs):
+def run_spptint_testset(mpas_config, spptint_vals, num_runs):
     """
-    Put some comments here.
+    This function launches a new mpas_app experiment for each value of spptint
+    and run number.
     """
-#
-# Launch a new mpas_app experiment for each value of spptint and run number.
-#
-# For the case of spptint >= 0, the steps to run an mpas_app experiment 
-# for the current value of spptint and run number are as follows:
-#
-# 1) Create a base name for the current experiment, i.e. one that includes
-#    the current value of spptint.  There should be a yaml configuration
-#    file in the directory of this script corresponding to this basename.
-#
-# 2) Create a name for the current experiment that includes the run number.
-#    This is just the base experiment name with a suffix containing the
-#    run number.  This is just a way to have different experiments with
-#    the same spptint value and other configuration parameters.
-#
-# 3) Copy the yaml config file with the base experiment name to a new file
-#    with the actual experiment name and use that as the configuration file
-#    (in addition to a base configuration file for the conus_15km grid).  
-#    This new file is a temporary one that is needed so that mpas_app names
-#    the experiment directory correctly (i.e. so that it includes the run
-#    number in the experiment name.  This new config file will be deleted
-#    once the experiment is launched.
-#
-# 4) Call the script that launches an mpas_app experiment, passing to it
-#    the names of the base configuration file for the conus_15km grid and
-#    the (temporary) configuration file for the current value of spptint
-#    and run number.
-#
-# 5) Delete the temporary configuration file.
-#
-# For the case of spptint = -1, we want to disable SPPT completely in MPAS.
-# This implies that we do not need to pass a second configuraton file
-# (that enables SPPT and specifies its parameters) to the script that
-# launches an mpas_app experiment because the base config file for the 
-# conus_15km grid already has SPPT disabled.
-# 
+
+    # Put values from the MPAS configuration dictionary into individual variables.
+    mesh_label = mpas_config['mesh_label']
+    dt = mpas_config['dt']
+    fcst_len = mpas_config['fcst_len']
+    num_cores = mpas_config['num_cores']
+    lscale_1 = mpas_config['lscale_1']
+
+    # The MPAS namelist flag do_sppt should be set to .true. for all
+    # non-negative values of spptint.  Create a list containing this
+    # flag for each value of spptint.
+    dosppt_vals = [spptint >= 0 for spptint in spptint_vals]
 
     # Set names of configuration files that will be needed.
     base_cfg_fn = ''.join(['config.', mesh_label, '.forecast_only.yaml'])
     stochy_nml_defaults_fn = 'config.modify_nml.nam_stochy.sppt_with_defaults.yaml'
     custom_cfg_tmpl_fn = 'config.template.sppt_pat1_only.yaml'
-
-    # Get the number of cores and the time step from the mpas_app base config
-    # file for this mesh so they can be included in the name of one of the
-    # subdirectories in each experiment's base directory.  This requires reading
-    # in the base config file.
-    base_cfg = uwconfig.get_yaml_config(base_cfg_fn)
-    num_cores = base_cfg['forecast']['mpas']['execution']['batchargs']['cores']
-    dt = base_cfg['forecast']['mpas']['namelist']['update_values']['nhyd_model']['config_dt']
 
     num_repeat_chars = 56
     print(f'')
@@ -98,8 +67,10 @@ def run_spptint_testset(mesh_label, lscale_1, dosppt_vals, spptint_vals, num_run
                  = os.path.join('sppt_timing_tests',
                                 '_'.join([mesh_label, dt_sec_str, lscale1_km_str, 'ncores', f'{num_cores:04d}']))
    
-            # In the custom configuration dictionary, set do_sppt, spptint, and
-            # lscale_1 that are needed in the MPAS namelist.
+            # Set various values in the custom configuration dictionary.
+            custom_cfg['forecast']['mpas']['length'] = fcst_len 
+            custom_cfg['forecast']['mpas']['execution']['batchargs']['cores'] = num_cores
+            custom_cfg['forecast']['mpas']['namelist']['update_values']['nhyd_model']['config_dt'] = dt
             custom_cfg['forecast']['mpas']['namelist']['update_values']['nam_stochy']['do_sppt'] = dosppt
             custom_cfg['forecast']['mpas']['namelist']['update_values']['nam_stochy']['config_spptint'] = spptint
             custom_cfg['forecast']['mpas']['namelist']['update_values']['nam_stochy']['config_sppt_lscale_1'] = lscale_1
@@ -117,9 +88,9 @@ def run_spptint_testset(mesh_label, lscale_1, dosppt_vals, spptint_vals, num_run
             print(f'{    custom_cfg_fn = }')
 #            print(f'    custom_cfg =\n{custom_cfg}')
 
-            # Create the yaml file containing the sppt customizations in the namelist.
-            # This is a temporary file that will be deleted once the experiment is
-            # launched.
+            # Create the yaml file containing the values in the custom configuration
+            # dictionary above.  This is a temporary file that will be deleted once
+            # the experiment is launched.
             # Note that realize() performs jinja2 rendering where it can.
             uwconfig.realize(
                 input_config=custom_cfg,
@@ -151,31 +122,41 @@ def run_spptint_testset(mesh_label, lscale_1, dosppt_vals, spptint_vals, num_run
 
 if __name__ == "__main__":
 
-    # Set the name of the mesh on which to run MPAS.
-    mesh_label = 'conus_15km'
-#    mesh_label = 'conus_03km'
+    # MPAS basic model configuration for the CONUS 15km mesh.
+    mpas_config_conus15km \
+        = {'mesh_label': 'conus_15km',
+           'dt': 60.0,
+           'fcst_len': 6,
+           'num_cores': 80,
+           'lscale_1': 50000,
+          }
 
-    # Set the value of the scale parameter for the first SPPT pattern.
-    # This is in meters.
-    lscale_1 = 50000
-#    lscale_1 = 150000
+    # MPAS basic model configuration for the CONUS 3km mesh.
+    mpas_config_conus03km \
+        = {'mesh_label': 'conus_03km',
+           'dt': 15.0,
+           'fcst_len': 6,
+           'num_cores': 2400,
+           'lscale_1': 150000,
+          }
 
-    # Set the spptint values for which to run the MPAS model.  A value of
-    # -1 means SPPT is turned off completely (so that the value of spptint
-    # is irrelevant).
+    mpas_config = mpas_config_conus15km
+    mpas_config = mpas_config_conus03km
+
+    # Set the spptint values for which to run the MPAS model.  A negative
+    # value of spptint means SPPT is turned off completely (so that the
+    # value of spptint is irrelevant).
     spptint_vals = [-1, 0, 60, 120, 600, 7200]
-#    spptint_vals = [-2]
-    spptint_vals = [-1, 60]
+#    spptint_vals = [-1, 60]
+#    spptint_vals = [60]
+#    spptint_vals = [-1]
 
     # Set number of identical runs to make for each value of spptint.  This is
     # to get a statistically significant sample.
     num_runs = 10
-    num_runs = 1
-    num_runs = 2
+#    num_runs = 1
+#    num_runs = 2
 
-#    spptint_vals = [60]
-#    spptint_vals = [-1]
-
-    dosppt_vals = [spptint >= 0 for spptint in spptint_vals]
-    run_spptint_testset(mesh_label, lscale_1, dosppt_vals, spptint_vals, num_runs)
+    # Run the specified MPAS configuration for the given spptint values and number of runs.
+    run_spptint_testset(mpas_config, spptint_vals, num_runs)
 

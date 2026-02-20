@@ -112,18 +112,16 @@ def main(user_config_files: list[Path, str]) -> None:
 
     experiment_config["user"]["mpas_app"] = mpas_app.as_posix()
 
-
-
-    # Get the specified experiment directory and convert it to a PosixPath
+    # Get the specified experiment base directory and convert it to a PosixPath
     # object.
     expt_basedir = experiment_config["user"]["expt_basedir"]
     if not expt_basedir: expt_basedir = ''
     # Convert string path to path object.
     expt_basedir = Path(expt_basedir)
 
-    # If expt_basedir is a relative path or is an empty string (or is None),
-    # prepend to it the default base directory in which experiment directories
-    # are created. 
+    # If expt_basedir is a relative path or is an empty string, append it to 
+    # the default base directory in which experiment directories are created
+    # and save the result as the new value of expt_basedir.
     if not os.path.isabs(expt_basedir):
         expt_basedir = Path(mpas_app) / '..' / 'expt_dirs' / expt_basedir
     # Resolve the path to get rid of '.', '..', symlinks, etc.
@@ -131,16 +129,16 @@ def main(user_config_files: list[Path, str]) -> None:
 
     print(f'{expt_basedir = }')
 
+    # Get the experiment name as specified in the config dictionary.  Also,
+    # get the value of the create_expt_name_flag, which plays a role in 
+    # setting the experiment name.
     expt_name = experiment_config["user"]["expt_name"]
-
-    # If create_expt_name in the config file is False, get the name of the 
-    # experiment from the last file or directory element in the absolute path
-    # in experiment_dir.  If create_expt_name is True, form a name for the
-    # experiment from the names of the config files passed on the command line.
     create_expt_name = experiment_config["user"]["create_expt_name"]
 
-    # If expt_name is not specified or create_expt_name is True, construct
-    # expt_name from the config file(s) passed to this script.
+    # If expt_name is not specified (or is set to an empty string) or if
+    # create_expt_name is True, construct an experiment name from the names
+    # of the config file(s) passed to this script.  Otherwise, use the
+    # expt_name from the config file set above.
     if not expt_name or create_expt_name:
 
         last_config_file = str(user_config_files[-1])

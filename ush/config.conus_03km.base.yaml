@@ -1,22 +1,6 @@
 user:
   cycle_frequency: 12
   #
-  # If the experiment directory is absolute, that will be used.  If it is
-  # relative, then it will be relative to the default location where experiment
-  # directories are created, which is a directory named "expt_dirs" on the
-  # same level as the mpas_app directory.  Setting experiment_dir to an
-  # empty string or to nothing (no value specified) will result in experiment_dir
-  # being set to the default location.
-#  experiment_dir: '/spptint_runs/../abc'
-#  experiment_dir: 'spptint_runs/../abc'
-#  experiment_dir: ''
-#  experiment_dir:
-#  experiment_dir: 'spptint_sensitivity_tests.pat1_only_l1_50km.output_start_end_only'
-#  experiment_dir: 'my_experiment'
-#  experiment_dir: 'spptint_none_0_60_120_600_7200_sec.pat1_only_l1_50km.output_start_end_only'
-#  experiment_dir: 'sppt_timing_tests/conus_03km'
-#  experiment_dir: "sppt_timing_tests/{{ user.mesh_label }}"
-  #
   # If expt_basedir is set to an absolute path, it will be used as is.  If
   # it is not set or is set to an empty string, it will be set to a default
   # absolute path (currently specified in experiment_gen.py).  If it is set
@@ -27,16 +11,18 @@ user:
   expt_basedir:
 #  expt_basedir: "sppt_timing_tests/{{ user.mesh_label }}"
   #
-  # If expt_name is not set or is set to an empty string, it will be formed
-  # from the name of the last config file passed to the experiment_gen.py
-  # script.
+  # Set the experiment name.  If this is set to an empty string (or is not
+  # set at all) or if create_expt_name below is set to True, the experiment
+  # name will be formed from the name of the last config file passed to the
+  # experiment_gen.py script and, if create_expt_name is set to True, possibly
+  # other parameters such as the mesh name.
   #
   expt_name: 
   #
-  # If create_expt_name in the config file is False, the name of the experiment
-  # will be obtained from the last file or directory element in the absolute
-  # path in experiment_dir.  If create_expt_name is True, the experiment name
-  # is formed from the names of the config files passed on the command line.
+  # If create_expt_name is True, the experiment name is always formed from
+  # the name of the last config file passed on the command line to the
+  # experiment_gen.py script and possibly other parameters such as the mesh
+  # name, and the value of expt_name above is ignored.
   #
   create_expt_name: False
 #  create_expt_name: True
@@ -66,13 +52,14 @@ auxil:
 
 data:
 #  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_vary_MPAS_hash/meshes"
-  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/generate_static_conus_3km"
-
+#  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/generate_static_conus_3km"
+  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/mesh_and_static_files"
 
 platform:
   scheduler: slurm
-  account: fv3lam
-  #account: zrtrr
+#  account: fv3lam
+#  account: zrtrr
+  account: rtrr
 
 wflow_launch:
   launch_script_fn: 'launch_wflow.py'
@@ -169,10 +156,6 @@ create_ics:
       RRTMG_SW_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/RRTMG_SW_DATA.DBL"
       SOILPARM.TBL: "{{ user.mpas_app }}/src/MPAS-Model/SOILPARM.TBL"
       VEGPARM.TBL: "{{ user.mpas_app }}/src/MPAS-Model/VEGPARM.TBL"
-#      MP_THOMPSON_QRacrQG_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QRacrQG_DATA.DBL"
-#      MP_THOMPSON_QRacrQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QRacrQS_DATA.DBL"
-#      MP_THOMPSON_freezeH2O_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_freezeH2O_DATA.DBL"
-#      MP_THOMPSON_QIautQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QIautQS_DATA.DBL"
       MP_{{auxil.MP_NAME}}_freezeH2O_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_freezeH2O_DATA.DBL"
       MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL"
       MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL"
@@ -255,13 +238,10 @@ forecast:
   mpas:
     execution:
       batchargs:
-#        cores: 32
-#        cores: 128
-#        cores: 1200
+#        cores: 1000
         cores: 2400
 #        walltime: 00:30:00
-#        walltime: 02:00:00
-        walltime: 08:00:00
+        walltime: 02:30:00
         native: '--exclusive'
         maxtries: 1
         # This could be set to 'bigmem' on hera to access the big memory nodes there.
@@ -282,6 +262,7 @@ forecast:
       stream_list.atmosphere.surface: "{{ user.mpas_app }}/parm/mpas/stream_list.atmosphere.surface"
     files_to_link:
       <<: *mpas_init_files_to_link
+      CCN_ACTIVATE_DATA: "{{ user.mpas_app }}/src/MPAS-Model/CCN_ACTIVATE_DATA"
     lateral_boundary_conditions:
       interval_hours: 6
       offset: 0
@@ -292,10 +273,8 @@ forecast:
       base_file: "{{ user.mpas_app }}/src/MPAS-Model/namelist.atmosphere"
       update_values:
         nhyd_model:
-#          config_dt: 60.0
-          config_dt: 10.0
-#          config_dt: 30.0
-#          config_dt: 20.0
+#          config_dt: 10.0
+          config_dt: 15.0
         limited_area:
           config_apply_lbcs: true
         decomposition:
