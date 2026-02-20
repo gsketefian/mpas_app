@@ -49,7 +49,7 @@ user:
   first_cycle: !!timestamp 2025-10-15T00:00:00
   last_cycle:  !!timestamp 2025-10-15T00:00:00
 #
-  mesh_label: sagebrush_1km
+  mesh_label: sagebrush_01km
   mpas_app: ''
   platform: hera
 ##  build_type: 'debug'
@@ -69,7 +69,6 @@ data:
 #  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/generate_static_conus_3km"
   mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/mesh_and_static_files"
 
-
 platform:
   scheduler: slurm
   account: fv3lam
@@ -83,7 +82,7 @@ wflow_launch:
 cron:
   use_cron_to_relaunch: True
   cron_relaunch_intvl_mnts: 1
-  # This will be set by the experiment generation script, so it doesn't matter what it 
+  # This will be set by the experiment generation script, so it doesn't matter what it
   # is set to here.  Leave it to its default value.
   crontab_line: None
 
@@ -170,10 +169,10 @@ create_ics:
       RRTMG_SW_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/RRTMG_SW_DATA.DBL"
       SOILPARM.TBL: "{{ user.mpas_app }}/src/MPAS-Model/SOILPARM.TBL"
       VEGPARM.TBL: "{{ user.mpas_app }}/src/MPAS-Model/VEGPARM.TBL"
-      MP_THOMPSON_QRacrQG_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QRacrQG_DATA.DBL"
-      MP_THOMPSON_QRacrQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QRacrQS_DATA.DBL"
-      MP_THOMPSON_freezeH2O_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_freezeH2O_DATA.DBL"
-      MP_THOMPSON_QIautQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QIautQS_DATA.DBL"
+      MP_{{auxil.MP_NAME}}_freezeH2O_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_freezeH2O_DATA.DBL"
+      MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL"
+      MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL"
+      MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL"
     namelist:
       base_file: "{{ user.mpas_app }}/src/MPAS-Model/namelist.init_atmosphere"
       update_values: &mpas_init_update_values
@@ -256,8 +255,6 @@ forecast:
 #        cores: 128
         cores: 40
         walltime: 00:30:00
-#        walltime: 02:00:00
-#        walltime: 08:00:00
         native: '--exclusive'
         maxtries: 1
         # This could be set to 'bigmem' on hera to access the big memory nodes there.
@@ -288,10 +285,8 @@ forecast:
       base_file: "{{ user.mpas_app }}/src/MPAS-Model/namelist.atmosphere"
       update_values:
         nhyd_model:
-#          config_dt: 60.0
-          config_dt: 10.0
-#          config_dt: 30.0
-#          config_dt: 20.0
+#          config_dt: 10.0
+          config_dt: 1.0
         limited_area:
           config_apply_lbcs: true
         decomposition:
