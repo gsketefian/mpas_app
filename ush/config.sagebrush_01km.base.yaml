@@ -32,10 +32,10 @@ user:
 #
 #   "{{ user.first_cycle.strftime('%Y%m%d%H') }}"
 #
-  first_cycle: !!timestamp 2023-09-15T00:00:00
-  last_cycle:  !!timestamp 2023-09-15T00:00:00
+  first_cycle: !!timestamp 2025-10-07T00:00:00
+  last_cycle:  !!timestamp 2025-10-07T00:00:00
 #
-  mesh_label: conus_15km
+  mesh_label: sagebrush_01km
   mpas_app: ''
   platform: hera
 ##  build_type: 'debug'
@@ -236,10 +236,10 @@ forecast:
   mpas:
     execution:
       batchargs:
-#        cores: 32
-        cores: 80
+#        cores: 240
+        cores: 400
 #        walltime: 00:30:00
-        walltime: 02:30:00
+        walltime: 01:00:00
         native: '--exclusive'
         maxtries: 1
         # This could be set to 'bigmem' on hera to access the big memory nodes there.
@@ -273,7 +273,8 @@ forecast:
       base_file: "{{ user.mpas_app }}/src/MPAS-Model/namelist.atmosphere"
       update_values:
         nhyd_model:
-          config_dt: 60.0
+#          config_dt: 10.0
+          config_dt: 1.0
         limited_area:
           config_apply_lbcs: true
         decomposition:
@@ -308,13 +309,13 @@ forecast:
         type: output
         filename_template: "history.$Y-$M-$D_$h.$m.$s.nc"
 #        output_interval: "01:00:00"
-#        output_interval: "00:15:00"
+        output_interval: "00:15:00"
         # Set to length of forecast to get only an initial output file and one
         # at the end of the forecast.
 # Apparently the !timedelta constructor is not yet implemented in this
 # version of uwtools.  Probably need to update uwtools.
 #        output_interval: !timedelta '{{forecast.mpas.length}}'
-        output_interval: '{{forecast.mpas.length}}:00:00'
+#        output_interval: '{{forecast.mpas.length}}:00:00'
         files:
           - stream_list.atmosphere.output
         clobber_mode: overwrite
@@ -323,13 +324,13 @@ forecast:
         type: output
         filename_template: "diag.$Y-$M-$D_$h.$m.$s.nc"
 #        output_interval: "01:00:00"
-#        output_interval: "00:15:00"
+        output_interval: "00:15:00"
         # Set to length of forecast to get only an initial output file and one
         # at the end of the forecast.
 # Apparently the !timedelta constructor is not yet implemented in this
 # version of uwtools.  Probably need to update uwtools.
-        #output_interval: !timedelta '{{forecast.mpas.length}}'
-        output_interval: '{{forecast.mpas.length}}:00:00'
+#        output_interval: !timedelta '{{forecast.mpas.length}}'
+#        output_interval: '{{forecast.mpas.length}}:00:00'
         files:
           - stream_list.atmosphere.diagnostics
         clobber_mode: overwrite

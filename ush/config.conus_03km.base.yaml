@@ -45,7 +45,6 @@ user:
   workflow_blocks:
     - cold_start.yaml
 
-
 auxil:
   MP_NAME: '{%- if user.config_mp == "mp_tempo" -%} TEMPO {%- else -%} THOMPSON {%- endif -%}'
   hailaware_str: '{%- if user.config_mp == "mp_tempo" -%}_HAILAWARE{%-endif-%}'
@@ -124,7 +123,7 @@ create_ics:
     execution:
       batchargs:
         cores: 12
-        #walltime: 01:30:00
+#        walltime: 01:30:00
         walltime: 00:30:00
         native: ''
         maxtries: 1
@@ -251,6 +250,8 @@ forecast:
         - module use {{ user.mpas_app }}/modulefiles
         - module load build_{{ user.platform }}_intel
       executable: "{{ user.mpas_app }}/exec/atmosphere_model"
+#      executable: "{{ user.mpas_app }}/exec.gsl_develop_stoch.{{user.build_type}}/atmosphere_model"
+#      executable: "{{ user.mpas_app }}/exec/atmosphere_model.{{user.build_type}}"
       mpiargs:
         - "--ntasks={{ forecast.mpas['execution']['batchargs']['cores']}}"
       mpicmd: srun
