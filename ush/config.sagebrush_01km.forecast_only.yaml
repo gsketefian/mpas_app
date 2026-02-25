@@ -343,8 +343,8 @@ forecast:
         mutable: true
         type: output
         filename_template: "history.$Y-$M-$D_$h.$m.$s.nc"
-#        output_interval: "01:00:00"
-        output_interval: "00:15:00"
+#        output_interval: "00:15:00"
+        output_interval: "01:00:00"
         # Set to length of forecast to get only an initial output file and one
         # at the end of the forecast.
 # Apparently the !timedelta constructor is not yet implemented in this
@@ -358,8 +358,8 @@ forecast:
         mutable: true
         type: output
         filename_template: "diag.$Y-$M-$D_$h.$m.$s.nc"
-#        output_interval: "01:00:00"
-        output_interval: "00:15:00"
+#        output_interval: "00:15:00"
+        output_interval: "01:00:00"
         # Set to length of forecast to get only an initial output file and one
         # at the end of the forecast.
 # Apparently the !timedelta constructor is not yet implemented in this
