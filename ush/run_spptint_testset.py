@@ -76,7 +76,7 @@ def run_spptint_testset(mpas_config, spptint_vals, num_runs):
             custom_cfg['forecast']['mpas']['namelist']['update_values']['nam_stochy']['config_sppt_lscale_1'] = lscale_1
 
             if dosppt:
-                expt_basename = ''.join(['sppt_pat1_only_l1_', lscale1_km_str, '_spptint_', f'{spptint:04d}', 'sec'])
+                expt_basename = ''.join(['sppt_pat1_only_', lscale1_km_str, '_spptint_', f'{spptint:04d}', 'sec'])
             else:
                 expt_basename = ''.join(['no_sppt'])
 
@@ -128,7 +128,8 @@ if __name__ == "__main__":
            'dt': 60.0,
            'fcst_len': 6,
            'num_cores': 80,
-           'lscale_1': 50000,
+#           'lscale_1': 50000,
+           'lscale_1': 150000,
           }
 
     # MPAS basic model configuration for the CONUS 3km mesh.
@@ -141,12 +142,13 @@ if __name__ == "__main__":
           }
 
     mpas_config = mpas_config_conus15km
-    mpas_config = mpas_config_conus03km
+#    mpas_config = mpas_config_conus03km
 
     # Set the spptint values for which to run the MPAS model.  A negative
     # value of spptint means SPPT is turned off completely (so that the
     # value of spptint is irrelevant).
-    spptint_vals = [-1, 0, 60, 120, 600, 7200]
+#    spptint_vals = [-1, 0, 60, 120, 600, 7200]
+    spptint_vals = [-1, 0, 120, 600, 7200]
 #    spptint_vals = [-1, 60]
 #    spptint_vals = [60]
 #    spptint_vals = [-1]
@@ -154,7 +156,7 @@ if __name__ == "__main__":
     # Set number of identical runs to make for each value of spptint.  This is
     # to get a statistically significant sample.
     num_runs = 10
-#    num_runs = 1
+    num_runs = 1
 #    num_runs = 2
 
     # Run the specified MPAS configuration for the given spptint values and number of runs.
