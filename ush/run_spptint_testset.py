@@ -148,9 +148,9 @@ if __name__ == "__main__":
     # value of spptint means SPPT is turned off completely (so that the
     # value of spptint is irrelevant).
 #    spptint_vals = [-1, 0, 60, 120, 600, 7200]
-    spptint_vals = [-1, 0, 120, 600, 7200]
+#    spptint_vals = [-1, 0, 120, 600, 7200]
 #    spptint_vals = [-1, 60]
-#    spptint_vals = [60]
+    spptint_vals = [60]
 #    spptint_vals = [-1]
 
     # Set number of identical runs to make for each value of spptint.  This is
