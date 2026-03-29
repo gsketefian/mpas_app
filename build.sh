@@ -89,7 +89,7 @@ function check_generate_microphys_files() {
   echo
   echo "The following files are needed by the ${mp_name} microphysics (MP) scheme"
   echo "and must exist in the current directory if MPAS is to be run with this"
-  echo "scheme:"
+  echo "MP scheme:"
   printf "    %s\n" "${mp_tables[@]}"
   echo "Checking for the existence of these files in the current directory."
   echo "Current directory is:"
@@ -131,10 +131,15 @@ function check_generate_microphys_files() {
     local exec_name=""
     if [ ${mp_name,,} == "thompson" ]; then
       exec_name="build_tables"
+      ./${exec_name}
     elif [ ${mp_name,,} == "tempo" ]; then
-      exec_name="build_tables_tempo"
+      exec_name="build_tempo_tables_sbatch"
+#      TEMPO_DIR="${MPAS_APP_DIR}/src/MPAS-Model/src/core_atmosphere/physics/physics_noaa/TEMPO"
+#      cd ${TEMPO_DIR}
+#      make -f Makefile.intel run_build_tables
+#      cp ${exec_name} ${MPAS_APP_DIR}/src/MPAS-Model
+      sbatch ${MPAS_APP_DIR}/${exec_name}
     fi
-    ./${exec_name}
   fi
 
 }
@@ -256,10 +261,9 @@ install_mpas_model () {
                          "MP_THOMPSON_QRacrQS_DATA.DBL"
                          "MP_THOMPSON_freezeH2O_DATA.DBL" )
 
-    tempo_mp_tables=( "MP_TEMPO_HAILAWARE_QRacrQG_DATA.DBL"
-                      "MP_TEMPO_QIautQS_DATA.DBL"
-                      "MP_TEMPO_QRacrQS_DATA.DBL"
-                      "MP_TEMPO_freezeH2O_DATA.DBL" )
+    tempo_mp_tables=( "qr_acr_qs_data_tempo_v3"
+                      "qr_acr_qg_data_tempo_v3"
+                      "freeze_water_data_tempo_v3" )
 
     if [ "${PRECLEAN}" = true ]; then
       echo
