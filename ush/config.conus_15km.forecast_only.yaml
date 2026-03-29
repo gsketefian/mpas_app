@@ -291,13 +291,57 @@ forecast:
       RRTMG_SW_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/RRTMG_SW_DATA.DBL"
       SOILPARM.TBL: "{{ user.mpas_app }}/src/MPAS-Model/SOILPARM.TBL"
       VEGPARM.TBL: "{{ user.mpas_app }}/src/MPAS-Model/VEGPARM.TBL"
-      MP_{{auxil.MP_NAME}}_freezeH2O_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_freezeH2O_DATA.DBL"
-      MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL"
-      MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL"
-      MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL"
+      #
+      # The following are now only applicable to Thompson MP.  They should
+      # only be linked if using Thompson MP, but we don't know how to do that
+      # with uwtools (since !remove doesn't work).
+      #
+#      MP_{{auxil.MP_NAME}}_freezeH2O_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_freezeH2O_DATA.DBL"
+#      MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}{{auxil.hailaware_str}}_QRacrQG_DATA.DBL"
+#      MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QRacrQS_DATA.DBL"
+#      MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_{{auxil.MP_NAME}}_QIautQS_DATA.DBL"
+      MP_THOMPSON_freezeH2O_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_freezeH2O_DATA.DBL"
+      MP_THOMPSON{{auxil.hailaware_str}}_QRacrQG_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON{{auxil.hailaware_str}}_QRacrQG_DATA.DBL"
+      MP_THOMPSON_QRacrQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QRacrQS_DATA.DBL"
+      MP_THOMPSON_QIautQS_DATA.DBL: "{{ user.mpas_app }}/src/MPAS-Model/MP_THOMPSON_QIautQS_DATA.DBL"
+      #
+      # These are the new files for TEMPO.  The MP_TEMPO_... files are no
+      # longer valid.
+      #
+      qr_acr_qs_data_tempo_v3: "{{ user.mpas_app }}/src/MPAS-Model/qr_acr_qs_data_tempo_v3"
+      qr_acr_qg_data_tempo_v3: "{{ user.mpas_app }}/src/MPAS-Model/qr_acr_qg_data_tempo_v3"
+      freeze_water_data_tempo_v3: "{{ user.mpas_app }}/src/MPAS-Model/freeze_water_data_tempo_v3"
+      #
+      # As of 03/27/2026, CCN_ACTIVATE_DATA is needed for the following
+      # microphysics schemes:
+      #
+      # 1) mp_thompson_aerosols
+      #    CCN_ACTIVATE_DATA is always read (via init_thompson_aerosols_forMPAS)
+      # 2) mp_tempo
+      #    CCN_ACTIVATE_DATA is read only if config_tempo_aerosolaware = .true.
+      #    (via init_tempo_aerosols_forMPAS)
+      #
+      # For mp_thompson (without aerosols), mp_wsm6, mp_nssl2m, and all other 
+      # micorphysics schemes, CCN_ACTIVATE_DATA is not read.
+      #
+      # Thus, we could use an if-statement to include or !remove the following,
+      # but currently !remove doesn't seem to be working with uwtools.  So for
+      # now, we include it regardless of the microphysics scheme.
+      #
 #      '{%- if user.config_mp == "mp_tempo" -%}CCN_ACTIVATE_DATA{%- else -%}unused{%- endif -%}': "{%- if user.config_mp == 'mp_tempo' -%} {{ user.mpas_app }}/src/MPAS-Model/CCN_ACTIVATE_DATA {%- else -%} None {%- endif -%}"
 # The following needs to be in an if-statement, but not sure how to do it.
       CCN_ACTIVATE_DATA: "{{ user.mpas_app }}/src/MPAS-Model/CCN_ACTIVATE_DATA"
+      #
+      # ccn_activate.bin is only needed for TEMPO microphysics, so ideally we
+      # should "!remove" it if config_mp is not set to "mp_tempo".  But since
+      # "!remove" isn't working in uwtools, we just create the link regardless
+      # of which microphysics is being used.
+      #
+      # The following is the original location of ccn_activate.bin.  If we
+      # have the Makefile copy it to the MPAS-Model top-level directory, we
+      # should point it to there.
+      #
+      ccn_activate.bin: "{{ user.mpas_app }}/src/MPAS-Model/src/core_atmosphere/physics/physics_noaa/TEMPO/tables/ccn_activate.bin"
     lateral_boundary_conditions:
       interval_hours: 6
       offset: 0
@@ -316,6 +360,7 @@ forecast:
         physics:
           config_physics_suite: convection_permitting
           config_microp_scheme: '{{ user.config_mp }}'
+        physics_mp_tempo:
 # Should set config_tempo_hailaware to !remove if not using TEMPO, but
 # !remove is being treated as a string.  And so is "true" and "True" and
 # "false" and "False"!
