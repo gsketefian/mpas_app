@@ -337,10 +337,13 @@ forecast:
       # "!remove" isn't working in uwtools, we just create the link regardless
       # of which microphysics is being used.
       #
-      # The following is the original location of ccn_activate.bin.  If we
-      # have the Makefile copy it to the MPAS-Model top-level directory, we
-      # should point it to there.
+      # If we have the MPAS-Model's top-level Makefile copy ccn_activate.bin
+      # from its original creation location (under the TEMPO directory) to the
+      # MPAS-Model top-level directory, then we can point the location below
+      # to that top-level directory.  But for now, the Makefile doesn't do that
+      # copy, so we point to the original creation directory.
       #
+#      ccn_activate.bin: "{{ user.mpas_app }}/src/MPAS-Model/ccn_activate.bin"
       ccn_activate.bin: "{{ user.mpas_app }}/src/MPAS-Model/src/core_atmosphere/physics/physics_noaa/TEMPO/tables/ccn_activate.bin"
     lateral_boundary_conditions:
       interval_hours: 6
