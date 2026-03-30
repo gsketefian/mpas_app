@@ -131,15 +131,36 @@ function check_generate_microphys_files() {
     local exec_name=""
     if [ ${mp_name,,} == "thompson" ]; then
       exec_name="build_tables"
-      ./${exec_name}
+      # Instead of generating new MP tables using the executable, copy them over
+      # since they can take a long time to generate.
+      # over for now since they take a long time to build, and
+      # for TEMPO, they require a slurm job submission (because it takes too
+      # long to generate the graupel table on a front end node, and the job
+      # times out.
+      if [ 0 == 1 ]; then
+        ./${exec_name}
+      else
+        mp_tables_topdir="../${MPAS_APP_DIR}"
+        cp ${mp_tables_topdir}/thompson/* ${MPAS_APP_DIR}/src/MPAS-Model
+      fi
     elif [ ${mp_name,,} == "tempo" ]; then
       exec_name="build_tempo_tables_sbatch"
-#      TEMPO_DIR="${MPAS_APP_DIR}/src/MPAS-Model/src/core_atmosphere/physics/physics_noaa/TEMPO"
-#      cd ${TEMPO_DIR}
-#      make -f Makefile.intel run_build_tables
-#      cp ${exec_name} ${MPAS_APP_DIR}/src/MPAS-Model
-      sbatch ${MPAS_APP_DIR}/${exec_name}
+      # Instead of generating new MP tables using the executable, copy them over
+      # since they can take a long time to generate, and, for TEMPO, they require
+      # a slurm job submission (because it takes too long to generate one of the
+      # tables on a front end node and the job times out.
+      if [ 0 == 1 ]; then
+#        TEMPO_DIR="${MPAS_APP_DIR}/src/MPAS-Model/src/core_atmosphere/physics/physics_noaa/TEMPO"
+#        cd ${TEMPO_DIR}
+#        make -f Makefile.intel run_build_tables
+#        cp ${exec_name} ${MPAS_APP_DIR}/src/MPAS-Model
+        sbatch ${MPAS_APP_DIR}/${exec_name}
+      else
+        mp_tables_topdir="../${MPAS_APP_DIR}"
+        cp ${mp_tables_topdir}/tempo/* ${MPAS_APP_DIR}/src/MPAS-Model
+      fi
     fi
+
   fi
 
 }
