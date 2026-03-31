@@ -507,7 +507,7 @@ if [ "${VERBOSE}" = true ]; then
 fi
 echo "MAKE_SETTINGS = ${MAKE_SETTINGS}"
 
-# Before we go on load modules, we first need to activate Lmod for some systems
+# Before we go on to load modules, we first need to activate Lmod for some systems
 source ${MPAS_APP_DIR}/etc/lmod-setup.sh $MACHINE
 
 # source the module file for this platform/compiler combination, then build the code
