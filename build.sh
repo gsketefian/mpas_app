@@ -16,12 +16,12 @@ OPTIONS
       (e.g. intel | gnu | cray | gccgfortran)
   --continue
       continue with existing build
+  --clean-only
+      cleans both cores ('init_atmosphere' and 'atmosphere') but does not build anything
   --pre-clean
       does a "make clean" before building each core
   --post-clean
       does a "make clean" after building each core
-  --clean
-      does a "make clean"
   --exec-dir=EXEC_DIR
       installation binary directory name ("exec" by default; any name is available)
   --conda-dir=CONDA_DIR
@@ -141,7 +141,7 @@ function check_generate_microphys_files() {
         ./${exec_name}
       else
         mp_tables_topdir="../${MPAS_APP_DIR}"
-        cp ${mp_tables_topdir}/thompson/* ${MPAS_APP_DIR}/src/MPAS-Model
+        cp ${mp_tables_topdir}/thompson/* ${MPAS_MODEL_DIR}
       fi
     elif [ ${mp_name,,} == "tempo" ]; then
       exec_name="build_tempo_tables_sbatch"
@@ -150,14 +150,14 @@ function check_generate_microphys_files() {
       # a slurm job submission (because it takes too long to generate one of the
       # tables on a front end node and the job times out.
       if [ 0 == 1 ]; then
-#        TEMPO_DIR="${MPAS_APP_DIR}/src/MPAS-Model/src/core_atmosphere/physics/physics_noaa/TEMPO"
+#        TEMPO_DIR="${MPAS_MODEL_DIR}/src/core_atmosphere/physics/physics_noaa/TEMPO"
 #        cd ${TEMPO_DIR}
 #        make -f Makefile.intel run_build_tables
-#        cp ${exec_name} ${MPAS_APP_DIR}/src/MPAS-Model
+#        cp ${exec_name} ${MPAS_MODEL_DIR}
         sbatch ${MPAS_APP_DIR}/${exec_name}
       else
         mp_tables_topdir="../${MPAS_APP_DIR}"
-        cp ${mp_tables_topdir}/tempo/* ${MPAS_APP_DIR}/src/MPAS-Model
+        cp ${mp_tables_topdir}/tempo/* ${MPAS_MODEL_DIR}
       fi
     fi
 
@@ -168,9 +168,8 @@ function check_generate_microphys_files() {
 install_mpas_init () {
 
   echo "Building executable 'init_atmosphere_model' (CORE='init_atmosphere')..."
-  pushd ${MPAS_APP_DIR}/src/MPAS-Model
+  pushd ${MPAS_MODEL_DIR}
   if [ "${PRECLEAN}" = true ]; then
-    echo "Pre-cleaning 'atmosphere' core..."
 #
 # Note that the "clean" target of the Makefile in the directory
 #
@@ -186,21 +185,39 @@ install_mpas_init () {
 # This of course includes the MP_THOMPSON_*_DATA.DBL files for Thompson
 # microphysics.
 #
-    make clean CORE=atmosphere
+# Not sure why we want to clean the 'atmophere' core here...
+#    echo "Pre-cleaning 'atmosphere' core..."
+#    make ${MAKE_SETTINGS} clean CORE=atmosphere
     echo "Pre-cleaning 'init_atmosphere' core..."
-    make clean CORE=init_atmosphere
+    make ${MAKE_SETTINGS} clean CORE=init_atmosphere
   fi
   make intel-mpi CORE=init_atmosphere ${MPAS_MAKE_OPTIONS} && \
   echo "Finished building executable 'init_atmosphere_model' (CORE='init_atmosphere')."
+#
+# Copy the "init_atmosphere_model" exectuable into a subdirectory directly
+# under the top-level directory of mpas_app that is separate from the MPAS-Model
+# directory.
+#
   cp -v init_atmosphere_model ${EXEC_DIR}
-#  make clean CORE=init_atmosphere
+#
+# Clean the init_atmosphere core after copying its exectuable into a
+# subdirectory directory under the top-level directory of mpas_app.
+#
+  if [ "${POSTCLEAN}" = true ]; then
+    echo "Post-cleaning 'init_atmosphere' core..."
+    make ${MAKE_SETTINGS} clean CORE=init_atmosphere
+    echo "Done post-cleaning 'init_atmosphere' core."
+  fi
+#
+# Change directory back to previous.
+#
   popd
 }
 
 install_mpas_model () {
 
   echo "Building executable 'atmosphere_model' (CORE='atmosphere')..."
-  pushd ${MPAS_APP_DIR}/src/MPAS-Model
+  pushd ${MPAS_MODEL_DIR}
   if [ "${PRECLEAN}" = true ]; then
     echo "Pre-cleaning 'atmosphere' core..."
 #
@@ -238,7 +255,7 @@ install_mpas_model () {
 # matter since that directory and its contents get overwritten by the
 # make below.
 #
-    make clean CORE=atmosphere
+    make ${MAKE_SETTINGS} clean CORE=atmosphere
   fi
 #
 # The following "make" command will create the directory
@@ -267,7 +284,15 @@ install_mpas_model () {
 # performed (and the "*"s in the ln commands above will only create symlinks
 # to *TBL and *DATA* files that already exist in the directories).
 #
+  echo "Building executable 'atmosphere_model' (CORE='atmosphere')..."
   make intel-mpi CORE=atmosphere ${MPAS_MAKE_OPTIONS}
+  echo "Finished building executable 'atmosphere_model' (CORE='atmosphere')."
+#
+# Copy the "atmosphere_model" exectuable into a subdirectory directly under
+# the top-level directory of mpas_app that is separate from the MPAS-Model
+# directory.
+#
+  echo "Copying 'atmosphere_model' executable from under MPAS-Model directory to \'${EXEC_DIR}\' ..."
   cp -v atmosphere_model ${EXEC_DIR}
 #
 # Generate microphysics tables.
@@ -298,9 +323,19 @@ install_mpas_model () {
 
     check_generate_microphys_files "TEMPO" ${tempo_mp_tables[@]}
   fi
-
+#
+# Clean the atmosphere core after copying its exectuable into a subdirectory
+# directory under the top-level directory of mpas_app.
+#
+  if [ "${POSTCLEAN}" = true ]; then
+    echo "Post-cleaning 'atmosphere' core..."
+    make ${MAKE_SETTINGS} clean CORE=atmosphere
+    echo "Done post-cleaning 'atmosphere' core."
+  fi
+#
+# Change directory back to previous.
+#
   popd
-  echo "Finished building executable 'atmosphere_model' (CORE='atmosphere')."
 }
 
 # print settings
@@ -344,8 +379,9 @@ SINGLE_PRECISION=false
 GENERATE_MP_TABLES=true
 
 # Make options
-CLEAN=false
+CLEAN_ONLY=false
 PRECLEAN=false
+POSTCLEAN=false
 CONDA_ONLY=false
 INSTALL_CONDA=true
 
@@ -365,8 +401,9 @@ while :; do
     --compiler|--compiler=|-c|-c=) usage_error "$1 requires argument." ;;
     --continue) CONTINUE=true ;;
     --continue=?*|--continue=) usage_error "$1 argument ignored." ;;
-    --clean) CLEAN=true ;;
+    --clean-only) CLEAN_ONLY=true ;;
     --pre-clean) PRECLEAN=true ;;
+    --post-clean) POSTCLEAN=true ;;
     --build) BUILD=true ;;
     --exec-dir=?*) EXEC_DIR=${1#*=} ;;
     --exec-dir|--exec-dir=) usage_error "$1 requires argument." ;;
@@ -511,7 +548,7 @@ echo "MAKE_SETTINGS = ${MAKE_SETTINGS}"
 source ${MPAS_APP_DIR}/etc/lmod-setup.sh $MACHINE
 
 # source the module file for this platform/compiler combination, then build the code
-printf "... Load MODULE_FILE ...\n"
+printf "... Load the module file ${MODULE_FILE} ...\n"
 module use ${MPAS_APP_DIR}/modulefiles
 module load ${MODULE_FILE}
 module list
@@ -556,24 +593,42 @@ fi
 
 echo "MPAS_MAKE_OPTIONS = ${MPAS_MAKE_OPTIONS}"
 
+#
+# Set the directory in which mpas_app will save the executable(s) being
+# built.
+#
 EXEC_DIR="${MPAS_APP_DIR}/exec"
 if [ ! -d "$EXEC_DIR" ]; then
   mkdir "$EXEC_DIR"
 fi
+#
+# Set the MPAS-Model top-level directory.
+#
+MPAS_MODEL_DIR="${MPAS_APP_DIR}/src/MPAS-Model"
+#
+# If CLEAN_ONLY is set to "true", clean the 'init_atmosphere' and 'atmosphere'
+# cores but don't build them or anything else.
+#
+if [ ${CLEAN_ONLY} = true ]; then
+  pushd ${MPAS_MODEL_DIR}
+  echo "Cleaning 'init_atmosphere' core..."
+  make ${MAKE_SETTINGS} clean CORE=init_atmosphere
+  echo "Cleaning 'atmosphere' core..."
+  make ${MAKE_SETTINGS} clean CORE=atmosphere
+  echo "Done cleaning 'init_atmosphere' and 'atmosphere' cores."
+  popd
+#
+# If CLEAN_ONLY is set to "false", build one or both cores.
+#
+else
 
-printf "\nATMOS_ONLY: ${ATMOS_ONLY}\n"
+  printf "\nATMOS_ONLY: ${ATMOS_ONLY}\n"
+  if [ ${ATMOS_ONLY} = false ]; then
+    install_mpas_init
+  fi
 
-if [ ${ATMOS_ONLY} = false ]; then
-  install_mpas_init
-fi
+  install_mpas_model
 
-install_mpas_model
-
-if [ "${CLEAN}" = true ]; then
-    if [ -f $PWD/Makefile ]; then
-       printf "... Clean executables ...\n"
-       make ${MAKE_SETTINGS} clean 2>&1 | tee log.make
-    fi
 fi
 
 
