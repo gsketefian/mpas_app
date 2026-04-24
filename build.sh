@@ -3,7 +3,7 @@
 #usage instructions
 usage () {
 cat << EOF_USAGE
-Usage: $0 --platform=PLATFORM [OPTIONS] 
+Usage: $0 --platform=PLATFORM [OPTIONS]
 
 OPTIONS
   -h, --help
@@ -173,7 +173,7 @@ install_mpas_init () {
     echo "Pre-cleaning 'atmosphere' core..."
 #
 # Note that the "clean" target of the Makefile in the directory
-# 
+#
 #   MPAS-Model/src/core_atmosphere
 #
 # will remove all files and symlinks in the top-level directory (MPAS-Model)
@@ -205,7 +205,7 @@ install_mpas_model () {
     echo "Pre-cleaning 'atmosphere' core..."
 #
 # Note that the "clean" target of the Makefile in the directory
-# 
+#
 #   src/core_atmosphere
 #
 # will remove all files and symlinks in the top-level directory (usually
@@ -315,7 +315,7 @@ Settings:
   CONTINUE=${CONTINUE}
   BUILD_JOBS=${BUILD_JOBS}
   VERBOSE=${VERBOSE}
-  
+
 EOF_SETTINGS
 }
 
@@ -421,8 +421,8 @@ if [ ${#MPAS_APP_DIR} -gt ${MPAS_APP_DIR_MAX_LEN} ]; then
   echo
   echo "The number of characters in the absolute path to the mpas_app root"
   echo "directory (MPAS_APP_DIR) cannot be more than ${MPAS_APP_DIR_MAX_LEN} (but is):"
-  echo "  MPAS_APP_DIR = \"${MPAS_APP_DIR}\"" 
-  echo "  \${#MPAS_APP_DIR} = ${#MPAS_APP_DIR}" 
+  echo "  MPAS_APP_DIR = \"${MPAS_APP_DIR}\""
+  echo "  \${#MPAS_APP_DIR} = ${#MPAS_APP_DIR}"
   echo "Please clone mpas_app in a location with an absolue path that is within"
   echo "this limit and retry the build.  Stopping."
   exit
