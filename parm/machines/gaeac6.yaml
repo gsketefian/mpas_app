@@ -1,0 +1,4 @@
+data:
+  mesh_files: /some/default/path
+platform:
+  scheduler: slurm
