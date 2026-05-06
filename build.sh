@@ -191,7 +191,10 @@ install_mpas_init () {
     echo "Pre-cleaning 'init_atmosphere' core..."
     make ${MAKE_SETTINGS} clean CORE=init_atmosphere
   fi
-  make intel-mpi CORE=init_atmosphere ${MPAS_MAKE_OPTIONS} && \
+#  make intel-mpi CORE=init_atmosphere ${MAKE_SETTINGS} && \
+#  make intel-mpi-gaea CORE=init_atmosphere ${MAKE_SETTINGS} && \
+#  make cray CORE=init_atmosphere ${MAKE_SETTINGS} && \
+  make ${MAKE_SETTINGS} ${MAKE_TARGET} CORE=init_atmosphere && \
   echo "Finished building executable 'init_atmosphere_model' (CORE='init_atmosphere')."
 #
 # Copy the "init_atmosphere_model" exectuable into a subdirectory directly
@@ -285,7 +288,10 @@ install_mpas_model () {
 # to *TBL and *DATA* files that already exist in the directories).
 #
   echo "Building executable 'atmosphere_model' (CORE='atmosphere')..."
-  make intel-mpi CORE=atmosphere ${MPAS_MAKE_OPTIONS}
+#  make intel-mpi CORE=atmosphere ${MAKE_SETTINGS}
+#  make intel-mpi-gaea CORE=atmosphere ${MAKE_SETTINGS}
+#  make cray CORE=atmosphere ${MAKE_SETTINGS}
+  make ${MAKE_SETTINGS} ${MAKE_TARGET} CORE=atmosphere && \
   echo "Finished building executable 'atmosphere_model' (CORE='atmosphere')."
 #
 # Copy the "atmosphere_model" exectuable into a subdirectory directly under
@@ -507,11 +513,23 @@ fi
 
 if [ -z "${COMPILER}" ] ; then
   case ${PLATFORM} in
-    jet|hera|hercules) COMPILER=intel ;;
+    hera)
+      COMPILER=intel
+      MAKE_TARGET=${COMPILER}-mpi
+      ;;
+    hercules)
+      COMPILER=intel
+      MAKE_TARGET=${COMPILER}
+      ;;
+    gaeac6)
+      COMPILER=intel
+      MAKE_TARGET=${COMPILER}-mpi-${PLATFORM}
+      ;;
     *)
-    COMPILER=intel
-    printf "WARNING: Setting default COMPILER=intel for new platform ${PLATFORM}\n" >&2;
-    ;;
+      COMPILER=intel
+      printf "WARNING: Setting default COMPILER=intel for new platform ${PLATFORM}\n" >&2;
+      MAKE_TARGET=${COMPILER}
+      ;;
   esac
 fi
 
@@ -547,6 +565,15 @@ echo "MAKE_SETTINGS = ${MAKE_SETTINGS}"
 # Before we go on to load modules, we first need to activate Lmod for some systems
 source ${MPAS_APP_DIR}/etc/lmod-setup.sh $MACHINE
 
+printf "... Currently loaded modules:\n"
+module list
+
+printf "... Purging modules ...\n"
+module purge
+
+printf "... Check loaded modules (should be empty):\n"
+module list
+
 # source the module file for this platform/compiler combination, then build the code
 printf "... Load the module file ${MODULE_FILE} ...\n"
 module use ${MPAS_APP_DIR}/modulefiles
@@ -557,41 +584,41 @@ module list
 printf "...Building MPAS-Model..."
 
 # process MPAS flags
-MPAS_MAKE_OPTIONS="${MAKE_SETTINGS}"
+MAKE_SETTINGS="${MAKE_SETTINGS}"
 
 if [ "${DEBUG}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} DEBUG=true"
+  MAKE_SETTINGS="${MAKE_SETTINGS} DEBUG=true"
 fi
 
 if [ "${USE_PAPI}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} USE_PAPI=true"
+  MAKE_SETTINGS="${MAKE_SETTINGS} USE_PAPI=true"
 fi
 
 if [ "${TAU}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} TAU=true"
+  MAKE_SETTINGS="${MAKE_SETTINGS} TAU=true"
 fi
 
 if [ "${AUTOCLEAN}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} AUTOCLEAN=true"
+  MAKE_SETTINGS="${MAKE_SETTINGS} AUTOCLEAN=true"
 fi
 
 if [ "${GEN_F90}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} GEN_F90=true"
+  MAKE_SETTINGS="${MAKE_SETTINGS} GEN_F90=true"
 fi
 
 if [ ! -z "${TIMER_LIB}" ]; then
-  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} TIMER_LIB={$TIMER_LIB}"
+  MAKE_SETTINGS="${MAKE_SETTINGS} TIMER_LIB={$TIMER_LIB}"
 fi
 
 if [ "${OPENMP}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} OPENMP=true"
+  MAKE_SETTINGS="${MAKE_SETTINGS} OPENMP=true"
 fi
 
 if [ "${SINGLE_PRECISION}" = true ]; then
-  MPAS_MAKE_OPTIONS="${MPAS_MAKE_OPTIONS} PRECISION=single"
+  MAKE_SETTINGS="${MAKE_SETTINGS} PRECISION=single"
 fi
 
-echo "MPAS_MAKE_OPTIONS = ${MPAS_MAKE_OPTIONS}"
+echo "MAKE_SETTINGS = ${MAKE_SETTINGS}"
 
 #
 # Set the directory in which mpas_app will save the executable(s) being
