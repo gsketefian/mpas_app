@@ -122,6 +122,16 @@ def run_spptint_testset(mpas_config, spptint_vals, num_runs):
 
 if __name__ == "__main__":
 
+    # MPAS basic model configuration for the CONUS 120km mesh.
+    mpas_config_conus120km \
+        = {'mesh_label': 'conus_120km',
+           'dt': 720.0,
+           'fcst_len': 6,
+           #'num_cores': 32,
+           'num_cores': 2,
+           'lscale_1': 450000,
+          }
+
     # MPAS basic model configuration for the CONUS 15km mesh.
     mpas_config_conus15km \
         = {'mesh_label': 'conus_15km',
@@ -141,7 +151,8 @@ if __name__ == "__main__":
            'lscale_1': 150000,
           }
 
-    mpas_config = mpas_config_conus15km
+    mpas_config = mpas_config_conus120km
+#    mpas_config = mpas_config_conus15km
 #    mpas_config = mpas_config_conus03km
 
     # Set the spptint values for which to run the MPAS model.  A negative
@@ -150,7 +161,8 @@ if __name__ == "__main__":
 #    spptint_vals = [-1, 0, 60, 120, 600, 7200]
 #    spptint_vals = [-1, 0, 120, 600, 7200]
 #    spptint_vals = [-1, 60]
-    spptint_vals = [60]
+#    spptint_vals = [60]
+    spptint_vals = [0]
 #    spptint_vals = [-1]
 
     # Set number of identical runs to make for each value of spptint.  This is
