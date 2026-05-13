@@ -30,7 +30,15 @@ def create_grid_files(expt_dir: Path, mesh_file_path: Path, nprocs: int) -> None
     """
     copy(src=mesh_file_path, dst=expt_dir)
     mesh_file = expt_dir / mesh_file_path.name
-    cmd = f"gpmetis -minconn -contig -niter=200 {mesh_file} {nprocs}"
+    # If running in serial (nprocs set to 1), there is no need to create a mesh partitioning
+    # file because MPAS doesn't read it.  In fact, gpmetis will return with an error if the
+    # number of MPI processes is set to 1.  In this case, to keep the mpas_app workflow's
+    # config file simple, we still generate an empty file for this case.
+    if nprocs == 1:
+        cmd = f"touch {mesh_file}.part.{nprocs}"
+    else:
+        cmd = f"gpmetis -minconn -contig -niter=200 {mesh_file} {nprocs}"
+
     try:
         output = check_output(
             cmd, encoding="utf=8", shell=True, stderr=STDOUT, text=True
@@ -314,8 +322,13 @@ def main(user_config_files: list[Path, str]) -> None:
                 cores = resources["nodes"] * resources["tasks_per_node"]
             all_nprocs.append(cores)
     for nprocs in all_nprocs:
+        if nprocs == 1:
+            print(f"Note: When nprocs = {nprocs} (i.e. MPAS is running in serial), MPAS does not read in a grid partitioning file.")
+            print(f"      However, an empty grid partitioning file will be created for consistency with the nprocs > 1 cases.")
+
+        dummy_or_null = 'dummy ' if nprocs == 1 else ''
         if not (expt_dir / f"{mesh_file_path.name}.part.{nprocs}").is_file():
-            print(f"Creating grid partitioning file for {nprocs} procs")
+            print(f"Creating {dummy_or_null}grid partitioning file for {nprocs} procs")
             create_grid_files(expt_dir, mesh_file_path, nprocs)
 
 
