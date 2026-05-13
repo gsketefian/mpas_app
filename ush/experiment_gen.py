@@ -316,16 +316,16 @@ def main(user_config_files: list[Path, str]) -> None:
         ("create_lbcs", "mpas_init"),
         ("forecast", "mpas"),
         ):
-        if sect in experiment_config:
+        if sect in experiment_config and isinstance(experiment_config[sect], dict):
             resources = experiment_config[sect][driver]["execution"]["batchargs"]
             if (cores := resources.get("cores")) is None:
                 cores = resources["nodes"] * resources["tasks_per_node"]
             all_nprocs.append(cores)
     for nprocs in all_nprocs:
         if nprocs == 1:
-            print(f"Note: When nprocs = {nprocs} (i.e. MPAS is running in serial), MPAS does not read in a grid partitioning file.")
-            print(f"      However, an empty grid partitioning file will be created for consistency with the nprocs > 1 cases.")
-
+            print(f"    Note:"
+            print(f"    When nprocs = {nprocs} (i.e. MPAS is running in serial), MPAS does not read in a grid partitioning file.")
+            print(f"    However, an empty grid partitioning file will be created for consistency with the nprocs > 1 cases.")
         dummy_or_null = 'dummy ' if nprocs == 1 else ''
         if not (expt_dir / f"{mesh_file_path.name}.part.{nprocs}").is_file():
             print(f"Creating {dummy_or_null}grid partitioning file for {nprocs} procs")
