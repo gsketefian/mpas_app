@@ -127,8 +127,9 @@ if __name__ == "__main__":
         = {'mesh_label': 'conus_120km',
            'dt': 720.0,
            'fcst_len': 6,
+           'num_cores': 1,
+           #'num_cores': 2,
            #'num_cores': 32,
-           'num_cores': 2,
            'lscale_1': 450000,
           }
 

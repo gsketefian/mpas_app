@@ -268,7 +268,8 @@ forecast:
   mpas:
     execution:
       batchargs:
-        cores: 2
+        cores: 1
+#        cores: 2
 #        cores: 32
 #        cores: 80
         walltime: 00:30:00
