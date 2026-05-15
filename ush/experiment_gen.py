@@ -24,19 +24,23 @@ from datetime import datetime
 from copy import deepcopy
 #from deepdiff import DeepDiff
 
-def create_grid_files(expt_dir: Path, mesh_file_path: Path, nprocs: int) -> None:
+def create_grid_files(expt_dir: Path, mesh_conn_fp: Path, nprocs: int) -> None:
     """
-    Stage the mesh file in the experiment directory and decompose them for the current experiment.
+    Stage the mesh connectivity file in the experiment directory and use it 
+    to create the mesh partitioning file for the specified number of MPI processes.
     """
-    copy(src=mesh_file_path, dst=expt_dir)
-    mesh_file = expt_dir / mesh_file_path.name
-    # If running in serial (nprocs set to 1), there is no need to create a mesh partitioning
-    # file because MPAS doesn't read it.  In fact, gpmetis will return with an error if the
-    # number of MPI processes is set to 1.  In this case, to keep the mpas_app workflow's
-    # config file simple, we still generate an empty file for this case.
+    # If running in serial (nprocs set to 1), there is no need to create a mesh
+    # partition file because MPAS doesn't read it.  In fact, gpmetis will return
+    # with an error if the number of MPI processes passed to it is 1.  In this case,
+    # to keep the mpas_app workflow's configuration file simple, we still generate
+    # an empty partition file in the experiment's top-level directory.
     if nprocs == 1:
-        cmd = f"touch {mesh_file}.part.{nprocs}"
+        mesh_part_fn = f"{mesh_conn_fp.name}.part.{nprocs}"
+        mesh_part_fp = expt_dir / mesh_part_fn
+        cmd = f"touch {mesh_part_fp}"
     else:
+        copy(src=mesh_conn_fp, dst=expt_dir)
+        mesh_file = expt_dir / mesh_conn_fp.name
         cmd = f"gpmetis -minconn -contig -niter=200 {mesh_file} {nprocs}"
 
     try:
@@ -302,12 +306,13 @@ def main(user_config_files: list[Path, str]) -> None:
         sys.exit(1)
 
     # Create grid file.
-    mesh_file_name = f"{experiment_config['user']['mesh_label']}.graph.info"
-    mesh_file_path = Path(experiment_config["data"]["mesh_files"]) / mesh_file_name
+    mesh_conn_fn = f"{experiment_config['user']['mesh_label']}.graph.info"
+    mesh_conn_fp = Path(experiment_config["data"]["mesh_files"]) / mesh_conn_fn
 
-    # Completely reset experiment_config to the values in the experiment
-    # configuration file.  This will update (resolve) any jinja2 variables
-    # that were updated above (but not necessarily all of them).
+    # Reload experiment_config from the rendered experiment.yaml so that Jinja2
+    # template strings referencing other config fields are resolved.  Note that
+    # cycle-dependent templates (e.g. {{ cycle.strftime(...) }}) remain unresolved
+    # since cycle is only known at Rocoto runtime.
     experiment_config = uwconfig.get_yaml_config(config=experiment_file)
 
     all_nprocs = []
@@ -322,14 +327,13 @@ def main(user_config_files: list[Path, str]) -> None:
                 cores = resources["nodes"] * resources["tasks_per_node"]
             all_nprocs.append(cores)
     for nprocs in all_nprocs:
-        if nprocs == 1:
-            print(f"    Note:"
-            print(f"    When nprocs = {nprocs} (i.e. MPAS is running in serial), MPAS does not read in a grid partitioning file.")
-            print(f"    However, an empty grid partitioning file will be created for consistency with the nprocs > 1 cases.")
         dummy_or_null = 'dummy ' if nprocs == 1 else ''
-        if not (expt_dir / f"{mesh_file_path.name}.part.{nprocs}").is_file():
-            print(f"Creating {dummy_or_null}grid partitioning file for {nprocs} procs")
-            create_grid_files(expt_dir, mesh_file_path, nprocs)
+        if not (expt_dir / f"{mesh_conn_fp.name}.part.{nprocs}").is_file():
+            print(f"Creating {dummy_or_null}grid partitioning file for nprocs = {nprocs} MPI processes...")
+            if nprocs == 1:
+                print(f"Note: When nprocs = {nprocs} (i.e. MPAS is running in serial), MPAS does not read in a grid partitioning file.")
+                print(f"      However, for consistency with the nprocs > 1 case, an empty grid partitioning file will still be created.")
+            create_grid_files(expt_dir, mesh_conn_fp, nprocs)
 
 
 if __name__ == "__main__":
