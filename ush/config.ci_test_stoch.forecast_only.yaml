@@ -1,5 +1,4 @@
 user:
-  cycle_frequency: 12
   #
   # If expt_basedir is set to an absolute path, it will be used as is.  If
   # it is not set or is set to an empty string, it will be set to a default
@@ -33,53 +32,82 @@ user:
 #   "{{ user.first_cycle.strftime('%Y%m%d%H') }}"
 #
   first_cycle: !!timestamp 2023-03-10T15:00:00
-  last_cycle: !!timestamp 2023-03-10T15:00:00
+  last_cycle:  !!timestamp 2023-03-10T15:00:00
+  cycle_frequency: 12
 #
-#  mesh_label: ci_conus_120km
   mesh_label: mpas
   mpas_app: ''
   platform: hera
 ##  build_type: 'debug'
 #  build_type: 'optimized'
+  #
+  # For this CI test case, config_mp must be set to 'mp_tempo' because the namelist
+  # that is copied into the forecast directory has 'mp_tempo' hard-coded in it.
+  # (We could change the setting in the namelist file via the namelist.update_values
+  # section below, but to make sure this test exactly uses the CI test settings, we
+  # will use the namelist without modifications.
+  #
   config_mp: 'mp_tempo'
-#  config_mp: 'mp_thompson'
+  #
   workflow_blocks:
     - cold_start_staged_ics_lbcs.yaml
 
 auxil:
-  hailaware_str: '{%- if user.config_mp == "mp_tempo" -%}_HAILAWARE{%-endif-%}'
   mpas_model_dir: "{{ user.mpas_app }}/src/MPAS-Model"
-  mpas_model_ci_case_dir: "{{ auxil.mpas_model_dir }}/testing_and_setup/ufs-community/cases/ufscommunity.convection_permitting.gfs.winter.stoch"
-  mpas_model_ci_data_dir: "{{ auxil.mpas_model_dir }}/testing_and_setup/ufs-community/data"
+  physics_dir: "{{auxil.mpas_model_dir }}/src/core_atmosphere/physics"
+  wrf_physics_tables_dir: "{{auxil.physics_dir }}/physics_wrf/files"
+  tempo_submodule_dir: "{{auxil.physics_dir }}/physics_noaa/TEMPO"
   dummy_target: "/dev/null"
   #
   # Names of symlinks to create in the forecast directory that point to
   # various microphysics tables.  The number and names of these depend on
   # the microphysics parameterization being used.
   #
-  mp_table_qr_acr_qs_symlink: '{%- if user.config_mp == "mp_tempo" -%}qr_acr_qs_data_tempo_v3{%- elif user.config_mp == "mp_thompson" -%}MP_THOMPSON_QRacrQS_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qs{%- endif -%}'
-  mp_table_qr_acr_qg_symlink: '{%- if user.config_mp == "mp_tempo" -%}qr_acr_qg_data_tempo_v3{%- elif user.config_mp == "mp_thompson" -%}MP_THOMPSON_QRacrQG_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qg{%- endif -%}'
-  mp_table_qi_aut_qs_symlink: '{%- if user.config_mp == "mp_thompson" -%}MP_THOMPSON_QIautQS_DATA.DBL{%- else -%}unused_mp_table_qi_aut_qs{%- endif -%}'
-  mp_table_freeze_water_symlink: '{%- if user.config_mp == "mp_tempo" -%}freeze_water_data_tempo_v3{%- elif user.config_mp == "mp_thompson" -%}MP_THOMPSON_freezeH2O_DATA.DBL{%- else -%}unused_mp_table_freeze_water{%- endif -%}'
+  # Note that:
+  #
+  # * The CCN activation lookup table for Thompson MP, i.e. CCN_ACTIVATE_DATA,
+  #   (along with many other physics lookup tables) is downloaded by the script
+  #   checkout_data_files.sh by the lookup_tables make target in
+  #   MPAS-Model/src/core_atmosphere/physics/Makefile.
+  #
+  # * The CCN activation lookup table for TEMPO MP, i.e. ccn_activate.bin, is
+  #   a tracked file in the TEMPO submodule and is thus immediately available
+  #   after MPAS-Model is (recursively) cloned. 
+  #
+  mp_table_ccn_activate_symlink: '{%- if user.config_mp == "mp_tempo" -%}ccn_activate.bin{%- elif user.config_mp == "mp_thompson_aerosols" -%}CCN_ACTIVATE_DATA{%- else -%}unused_mp_table_ccn_activate{%- endif -%}'
+  mp_table_qr_acr_qs_symlink: '{%- if user.config_mp == "mp_tempo" -%}qr_acr_qs_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQS_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qs{%- endif -%}'
+  mp_table_qr_acr_qg_symlink: '{%- if user.config_mp == "mp_tempo" -%}qr_acr_qg_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQG_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qg{%- endif -%}'
+  mp_table_qi_aut_qs_symlink: '{%- if user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QIautQS_DATA.DBL{%- else -%}unused_mp_table_qi_aut_qs{%- endif -%}'
+  mp_table_freeze_water_symlink: '{%- if user.config_mp == "mp_tempo" -%}freeze_water_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_freezeH2O_DATA.DBL{%- else -%}unused_mp_table_freeze_water{%- endif -%}'
   #
   # The full paths to the targets that the micophysics symlinks above must
   # point to.  As above, these depend on the microphysics parameterization
   # being used.
   #
-  mp_table_qr_acr_qs_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qr_acr_qg_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qg_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qi_aut_qs_target: '{%- if user.config_mp in ["mp_thompson"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qi_aut_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_freeze_water_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_freeze_water_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_ccn_activate_target: '{%- if user.config_mp == "mp_tempo" -%}{{ auxil.tempo_submodule_dir }}/tables/{{ auxil.mp_table_ccn_activate_symlink }}{%- elif user.config_mp == "mp_thompson_aerosols" -%}{{ auxil.wrf_physics_tables_dir }}/{{ auxil.mp_table_ccn_activate_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qr_acr_qs_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qr_acr_qg_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qg_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qi_aut_qs_target: '{%- if user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qi_aut_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_freeze_water_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_freeze_water_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  #
+  # Directories in which input for the CI test (e.g. namelists, stream definitions,
+  # ICs, LBCs, etc) is located.
+  #
+  mpas_model_ci_case_dir: "{{ auxil.mpas_model_dir }}/testing_and_setup/ufs-community/cases/ufscommunity.convection_permitting.gfs.winter.stoch"
+  mpas_model_ci_data_dir: "{{ auxil.mpas_model_dir }}/testing_and_setup/ufs-community/data"
 
 data:
-#  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_vary_MPAS_hash/meshes"
-#  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/mesh_and_static_files"
-#  mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/mpas_ci_testing_data/ics/ufscommunity.gfs.winter"
-#  mesh_files: "{{ auxil.mpas_model_ci_data_dir }}/ics/ufscommunity.gfs.winter"
-#  mesh_files: !remove
-  mesh_files: "./"
-#  staged_ics_lbcs_dir: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_MPAS_stoch/gsk_code_Ning_latest/mpas_staged_ics_lbcs"
-#  staged_ics_lbcs_dir: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/mpas_ci_testing_data/ics/ufscommunity.gfs.winter"
+  #
+  # Usually, the directory specified by mesh_files contains a mesh connectivity
+  # file that is used in the experiment generation step to create a mesh partitioning
+  # file (by passing the mesh connectivity file along with the number of processes
+  # specified in forecast.cores below to gpmetis).  However, when foreast.cores
+  # is set to 1 as is done for this CI test case, then MPAS will be run serially,
+  # in whihc case a partitioning file (and therefore a connectivity file) is not
+  # needed.  In fact, we do not have a connectivity file for this grid, so we
+  # simply set mesh_files to an empty string.
+  #
+  mesh_files: ""
   staged_ics_lbcs_dir: "{{ auxil.mpas_model_ci_data_dir }}/ics/ufscommunity.gfs.winter"
 
 platform:
@@ -100,8 +128,8 @@ cron:
   # is set to here.  Leave it to its default value.
   crontab_line: None
 
-
-# Remove the top-level driver config sections.
+# Remove the top-level uwtools config sections that are present by default but
+# that are not needed for a forecast-only experiment.
 get_ics_data: !remove
 get_lbcs_data: !remove
 prepare_grib: !remove
@@ -116,22 +144,15 @@ workflow:
     task_ungrib: !remove
     task_mpas_ics: !remove
     task_mpas_lbcs: !remove
-#    task_mpas:
-#      dependency:
-#        taskdep:
-#          attrs:
-#            task: 'abcd'
 
 forecast:
   mpas:
     execution:
       batchargs:
+        # For this CI test case, cores must be set to 1 (i.e. it must be run in 
+        # serial) because we do not have access to a grid connectivity file.
         cores: 1
-#        cores: 2
-#        cores: 32
-#        cores: 80
         walltime: 00:30:00
-#        walltime: 02:30:00
         native: '--exclusive'
         maxtries: 1
         # This could be set to 'bigmem' on hera to access the big memory nodes there.
@@ -142,7 +163,20 @@ forecast:
         - ulimit -s unlimited || true
         - module use {{ user.mpas_app }}/modulefiles
         - module load build_{{ user.platform }}_intel
+        #
+        # The next command creates the forecast directory under the experiment directory
+        # if the former doesn't already exist.  Usually, it will already exist because
+        # of the files_to_copy and/or files_to_link sections below.
+        #
         - mkdir -p {{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/forecast
+        #
+        # Clean up the forecast directory by deleting any (unneeded) symlinks that point
+        # to /dev/null.  These might be created by the files_to_link section below even
+        # though those symlinks are not be needed (which is why they point to /dev/null),
+        # and that can happen because different microphysics schemes (and possibly other
+        # types of schemes) require different numbers of lookup tables.
+        #
+        - find {{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/forecast -maxdepth 1 -type l -lname '/dev/null' -delete
         #
         # The following command downloads the ICs, LBCs, and other data possibly needed
         # for CI tests, as is done in the CI tests in GitHub Actions.
@@ -169,22 +203,24 @@ forecast:
         - "--ntasks={{ forecast.mpas['execution']['batchargs']['cores']}}"
       mpicmd: srun
     files_to_copy:
-      # Instead of copying the initial conditions file here, we will link it in
-      # the files_to_link section below.  But the "{{ user.mesh_label }}.init.nc"
-      # key needs to be removed here because it exists in the default config yaml
-      # file and would unnecessarily be in the final experiment.yml file (and would
-      # probably cause a crash).
-      #"{{ user.mesh_label }}.init.nc": "{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}/{{user.first_cycle.strftime('%Y%m%d%H')}}/{{ user.mesh_label }}.init.nc"
-      "{{ user.mesh_label }}.init.nc": !remove
-      #"{{ user.mesh_label }}.graph.info.part.{{forecast.mpas['execution']['batchargs']['cores']}}": '{{ user.experiment_dir }}/{{ user.mesh_label }}.graph.info.part.{{forecast.mpas["execution"]["batchargs"]["cores"]}}'
+      #
+      # The initial conditions file.
+      #
+      '{{ user.mesh_label }}.init.nc': '{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}.init.nc'
+      #
+      # Copy the mesh partitioning file that specifies how the cells in the
+      # mesh are distributed (partitioned) among MPI processes.  Note that
+      # for serial runs (cores set to 1), MPAS doesn't actually read this
+      # file.
+      #
+      "{{ user.mesh_label }}.graph.info.part.{{forecast.mpas['execution']['batchargs']['cores']}}": '{{ user.experiment_dir }}/{{ user.mesh_label }}.graph.info.part.{{forecast.mpas["execution"]["batchargs"]["cores"]}}'
       stream_list.atmosphere.diagnostics: "{{ auxil.mpas_model_ci_case_dir }}/stream_list.atmosphere.diagnostics"
       stream_list.atmosphere.output: "{{ auxil.mpas_model_ci_case_dir }}/stream_list.atmosphere.output"
       stream_list.atmosphere.surface: "{{ auxil.mpas_model_ci_case_dir }}/stream_list.atmosphere.surface"
     files_to_link: &mpas_files_to_link
       #
-      # Initial and lateral boundary conditions files.
+      # Link to the single LBC file that contains the LBCs at multiple times.
       #
-      "{{ user.mesh_label }}.init.nc": "{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}.init.nc"
       "{{ user.mesh_label }}.lbc.nc": "{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}.lbc.nc"
       #
       # Physics tables.
@@ -206,132 +242,87 @@ forecast:
       # Links to microphysics tables (or, if not needed, to a dummy target, 
       # e.g. /dev/null).
       #
+      '{{ auxil.mp_table_ccn_activate_symlink }}': '{{ auxil.mp_table_ccn_activate_target }}'
       '{{ auxil.mp_table_qr_acr_qs_symlink }}': '{{ auxil.mp_table_qr_acr_qs_target }}'
       '{{ auxil.mp_table_qr_acr_qg_symlink }}': '{{ auxil.mp_table_qr_acr_qg_target }}'
       '{{ auxil.mp_table_qi_aut_qs_symlink }}': '{{ auxil.mp_table_qi_aut_qs_target }}'
       '{{ auxil.mp_table_freeze_water_symlink }}': '{{ auxil.mp_table_freeze_water_target }}'
-      #
-      # As of 03/27/2026, CCN_ACTIVATE_DATA is needed for the following
-      # microphysics schemes:
-      #
-      # 1) mp_thompson_aerosols
-      #    CCN_ACTIVATE_DATA is always read (via init_thompson_aerosols_forMPAS)
-      # 2) mp_tempo
-      #    CCN_ACTIVATE_DATA is read only if config_tempo_aerosolaware = .true.
-      #    (via init_tempo_aerosols_forMPAS)
-      #
-      # For mp_thompson (without aerosols), mp_wsm6, mp_nssl2m, and all other 
-      # micorphysics schemes, CCN_ACTIVATE_DATA is not read.
-      #
-      # Thus, we could use an if-statement to include or !remove the following,
-      # but currently !remove doesn't seem to be working with uwtools.  So for
-      # now, we include it regardless of the microphysics scheme.
-      #
-#      '{%- if user.config_mp == "mp_tempo" -%}CCN_ACTIVATE_DATA{%- else -%}unused{%- endif -%}': "{%- if user.config_mp == 'mp_tempo' -%} {{ auxil.mpas_model_dir }}/CCN_ACTIVATE_DATA {%- else -%} None {%- endif -%}"
-# The following needs to be in an if-statement, but not sure how to do it.
-      CCN_ACTIVATE_DATA: "{{ auxil.mpas_model_dir }}/CCN_ACTIVATE_DATA"
-      #
-      # ccn_activate.bin is only needed for TEMPO microphysics, so ideally we
-      # should "!remove" it if config_mp is not set to "mp_tempo".  But since
-      # "!remove" isn't working in uwtools, we just create the link regardless
-      # of which microphysics is being used.
-      #
-      # If we have the MPAS-Model's top-level Makefile copy ccn_activate.bin
-      # from its original creation location (under the TEMPO directory) to the
-      # MPAS-Model top-level directory, then we can point the location below
-      # to that top-level directory.  But for now, the Makefile doesn't do that
-      # copy, so we point to the original creation directory.
-      #
-#      ccn_activate.bin: "{{ auxil.mpas_model_dir }}/ccn_activate.bin"
-      ccn_activate.bin: "{{ auxil.mpas_model_dir }}/src/core_atmosphere/physics/physics_noaa/TEMPO/tables/ccn_activate.bin"
     #
-    # If the lateral_boundary_conditions key is present in the mpas_app config
-    # file, the boundary_files method (in the mpas.py script of uwtools) is
-    # hardcoded to always generate timestamped lbc.YYYY-MM-DD_HH.MM.SS.nc symlinks
-    # in the forecast directory to such timestamped files in the path specified
-    # under lateral_boundary_conditions.  Since for the CI test(s) we have a 
-    # single LBC file (linded in the files_to_link section above) that contains
-    # the LBCs at multiple times, we don't want this behavior.  Thus, here, we
-    # must remove the lateral_boundary_conditions key.
-#    lateral_boundary_conditions:
-#      interval_hours: 6
-#      offset: 0
-#      #path: "{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}/{{ user.first_cycle.strftime('%Y%m%d%H') }}"
-#      path: "{{ data.staged_ics_lbcs_dir }}"
+    # If the lateral_boundary_conditions: key is present here (i.e. we do not
+    # "!remove" it), the boundary_files method in the mpas.py script of uwtools
+    # will always (because it is hardcoded to) generate time-stamped symlinks
+    # of the form "lbc.YYYY-MM-DD_HH.MM.SS.nc" in the forecast directory that
+    # point to files of the same names (i.e. also with time stamps in the name)
+    # in the directory specified by the path: key under lateral_boundary_conditions:.
+    #
+    # Since for the CI test(s) we don't have such time-stamped LBC files but
+    # instead have a single file (linked in the files_to_link: section above) that
+    # contains the LBCs at multiple times, this default behavior of pointing to
+    # individual time-stamped LBC files will cause an error (since such files
+    # don't exist for the CI test(s)).  Thus, here, we must remove the
+    # lateral_boundary_conditions: key and instead access the LBCs file using
+    # the symlink in the files_to_link: section above.
+    #
+    #lateral_boundary_conditions:
+    #  interval_hours: 6
+    #  offset: 0
+    #  path: "{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}.lbc.nc"
     lateral_boundary_conditions: !remove
     #
     # This is the length of the forecast.  Note that even if there is no
-    # "update_values:" section under "namelist:" below, the base_file is
-    # adjusted to reflect the length of the forecast specified here.
-#    length: 3
-#    length: 6
+    # "update_values:" section under "namelist:" below, the final namelist
+    # file in the forecast directory is modified from the one specified by
+    # "base_file:" to reflect the length of the forecast specified here.
+    #
     length: 1
     #
-    # Specify a base namelist and then update values in it via update_values.
+    # Specify a base namelist (base_file) along with the updates to make to
+    # it (update_values) to get the final namelist(s) in each forecast directory
+    # (there will be one for each initialization date).
     #
-    # Note that even if there is no "update_values:" section here, the contents
-    # of the namelist file will still be adjusted from that of the one specified
-    # in "base_file:" to reflect the forecast start time (or times for muliple
-    # forecasts) and the forecast length specified in this file.  In other words,
-    # if running a single forecast, the final namelist file in the forecast
-    # directory will always have its config_start_time variable adjusted to
-    # reflect the value of user.first_cycle, and it will have its config_run_duration
-    # variable adjusted to reflect the value of forecast.mpas.length.  Similarly,
-    # if running multiple forecasts, the namelist file in each forecast directory
-    # (of which there will be one per initialization time) will have its
-    # config_start_time adjusted from that of the base namelist file to reflect
-    # the values of user.first_cycle and user.last_cycle (as well as a cycle
-    # interval, which currently does not appear in this file but is probably a
-    # valid field to specify) specified here, and each such namelist file will
-    # also have its config_run_duration variable adjusted to match the value 
-    # of forecast.mpas.length specified here.
+    # Note that even if there is no "update_values:" section here (because we
+    # !remove it), the contents of the base namelist file will still be adjusted
+    # to reflect the forecast start time(s) (times for muliple forecasts) and
+    # the forecast length specified in this file.  In other words, even without
+    # an update_values: section here, the forecast start times and forecast
+    # lengths in the final namelist files written to the forecast directories
+    # (represented by the namelist variables config_start_time and config_run_duration)
+    # are always adjusted by mpas_app to reflect the values in this file (which
+    # are user.first_cycle, user.last_cycle, and user.cycle_frequency for
+    # determining the initialization times and forecast.mpas.length for
+    # determining the forecast length, which is the same for all forecasts).
+    # Other variables in the final namelist files are updated only if there
+    # is an "update_values:" section below that provides new values for them.
     #
     namelist:
+      #
+      # We specify as the base namelist file the one that the CI test in GitHub
+      # Actions uses.
+      #
       base_file: "{{ auxil.mpas_model_ci_case_dir }}/namelist.atmosphere"
       #
-      # Generally, there's no need to update values in the namelist file since we
-      # want to use whatever namelist file the CI test is using.
+      # There is no need to update values in the base namelist file specified
+      # above, so we simply remove the update_values key.
       #
-      # As stated above, however, even if the update_values key here is being
-      # removed, the config_start_time and config_run_duration in the final
-      # namelist file(s) will still be adjusted to reflect the values of 
-      # user.first_cycle, user.last_cycle, and forecast.mpas.length specified
-      # in this config file.
+      # However, as stated above, even if the update_values key is removed, the
+      # config_start_time and config_run_duration variables in the final namelist
+      # file(s) will still be adjusted to reflect the values of user.first_cycle,
+      # user.last_cycle, and forecast.mpas.length specified in this config file.
       #
       update_values: !remove
-#      update_values:
-#        nhyd_model:
-#          config_dt: 720.0
-##          config_dt: 60.0
-#        limited_area:
-#          config_apply_lbcs: true
-#        decomposition:
-#          config_block_decomp_file_prefix: "{{ user.mesh_label }}.graph.info.part."
-#        physics:
-#          config_physics_suite: convection_permitting
-#          config_microp_scheme: '{{ user.config_mp }}'
-#        physics_mp_tempo:
-## Should set config_tempo_hailaware to !remove if not using TEMPO, but
-## !remove is being treated as a string.  And so is "true" and "True" and
-## "false" and "False"!
-##          config_tempo_hailaware: '{%- if user.config_mp == "mp_tempo" -%} true {%- else -%} !remove {%- endif -%}'
-##          config_tempo_hailaware: '{%- if user.config_mp == "mp_tempo" -%} True {%- else -%} False {%- endif -%}'
-#          config_tempo_hailaware: True
     rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/forecast'
     streams:
       input:
         mutable: false
         type: input
         filename_template: "{{ user.mesh_label }}.init.nc"
-        input_interval: initial_only
+        input_interval: "initial_only"
         io_type: "pnetcdf,cdf5"
       lbc_in:
         mutable: false
         type: input
-        #filename_template: "lbc.$Y-$M-$D_$h.$m.$s.nc"
-        #filename_template: "mpas.lbc.nc"
         filename_template: "{{ user.mesh_label }}.lbc.nc"
-        input_interval: 03:00:00
+        input_interval: "03:00:00"
         filename_interval: "none"
         io_type: "pnetcdf,cdf5"
         packages: limited_area
@@ -348,8 +339,8 @@ forecast:
 #        type: input
 #        filename_template: "{{ user.mesh_label }}.sfc_update.nc"
 #        filename_interval: "none"
-#        io_type: "pnetcdf,cdf5"
 #        input_interval: "none"
+#        io_type: "pnetcdf,cdf5"
 #        files:
 #          - stream_list.atmosphere.surface
       output:
