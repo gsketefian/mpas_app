@@ -542,8 +542,10 @@ def hpss_requested_files(cla, file_names, store_specs, members=-1, ens_group=-1)
             )
 
             output_path = fill_template(cla.output_path, cla.cycle_date, mem=mem)
-            logging.info(f"Will place files in {os.path.abspath(output_path)}")
             logging.debug(f"CWD: {os.getcwd()}")
+
+            output_path = create_target_path(output_path)
+            logging.info(f"Will place files in {os.path.abspath(output_path)}")
 
             if mem != -1:
                 archive_internal_dir = fill_template(
@@ -551,8 +553,6 @@ def hpss_requested_files(cla, file_names, store_specs, members=-1, ens_group=-1)
                     cla.cycle_date,
                     mem=mem,
                 )
-                output_path = create_target_path(output_path)
-                logging.info(f"Will place files in {os.path.abspath(output_path)}")
 
             source_paths = []
             for fcst_hr in cla.fcst_hrs:
