@@ -114,6 +114,8 @@ get_ics_data:
     native: ''
     maxtries: 1
   external_model: GFS
+  data_stores: aws
+#  data_stores: hpss
   rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/{{ get_ics_data.external_model }}'
 
 get_lbcs_data:
@@ -123,6 +125,8 @@ get_lbcs_data:
     native: ''
     maxtries: 1
   external_model: GFS
+  data_stores: aws
+#  data_stores: hpss
   rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/{{ get_lbcs_data.external_model }}'
 
 prepare_grib:

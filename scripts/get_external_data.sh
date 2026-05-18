@@ -17,8 +17,8 @@ python -u ${MPAS_APP}/ush/retrieve_data.py \
     --file_set ${file_set:-fcst} \
     --config ${MPAS_APP}/parm/data_locations.yml \
     --cycle_date ${YYYYMMDDHH} \
-    --data_stores aws \
-    --data_type GFS \
+    --data_stores ${DATA_STORES} \
+    --data_type ${EXTERNAL_MODEL} \
     --fcst_hrs $fcst_hours \
     --file_fmt grib2 \
     --ics_or_lbcs ${ICS_or_LBCS} \

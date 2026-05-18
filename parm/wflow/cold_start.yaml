@@ -36,6 +36,8 @@ workflow:
         ICS_or_LBCS: ICS
         TIME_OFFSET_HRS: 0
         MPAS_APP: '&MPAS_APP;'
+        EXTERNAL_MODEL: "{{ get_ics_data.external_model }}"
+        DATA_STORES: "{{ get_ics_data.data_stores }}"
     task_get_lbcs_data:
       command: '&MPAS_APP;/scripts/get_external_data.sh'
       account: "{{ platform.account }}"
@@ -60,6 +62,8 @@ workflow:
         LBC_INTVL_HRS: 6
         FCST_LEN: 12
         MPAS_APP: '&MPAS_APP;'
+        EXTERNAL_MODEL: "{{ get_lbcs_data.external_model }}"
+        DATA_STORES: "{{ get_lbcs_data.data_stores }}"
     task_ungrib:
       command: 'source &MPAS_APP;/load_wflow_modules.sh &PLATFORM; ; python &MPAS_APP;/scripts/ungrib.py'
       account: "{{ platform.account }}"
