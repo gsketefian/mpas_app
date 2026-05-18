@@ -129,8 +129,15 @@ forecast:
   mpas:
     execution:
       batchargs:
-        cores: 1
-#        cores: 2
+        #
+        # On Hera, for a 6-hr forecast with config_dt = 720 sec and oupput
+        # every hour:
+        #
+        # - With 1 core, the forecast takes about 50 seconds.
+        # - With 2 cores, the forecast takes about 46 seconds.
+        #
+#        cores: 1
+        cores: 2
         walltime: 00:30:00
         native: '--exclusive'
         maxtries: 1

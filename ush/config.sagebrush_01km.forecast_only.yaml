@@ -130,10 +130,12 @@ forecast:
     execution:
       batchargs:
         #
-        # On Hera and with config_dt set to 1 second(s):
-        #   With 400 cores, the forecast takes about 1622 seconds (27.0 minutes).
-        #   With 800 cores, the forecast takes about 1281 seconds (21.4 minutes).
-        #   With 1600 cores, the forecast takes about 1161 seconds (19.4 minutes).
+        # On Hera, for a 6-hr forecast with config_dt = 1 sec and output
+        # every hour:
+        #
+        # - With 400 cores, the forecast takes about 1622 seconds (27.0 minutes).
+        # - With 800 cores, the forecast takes about 1281 seconds (21.4 minutes).
+        # - With 1600 cores, the forecast takes about 1161 seconds (19.4 minutes).
         #
 #        cores: 400
         cores: 800

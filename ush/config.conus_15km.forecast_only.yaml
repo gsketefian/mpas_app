@@ -130,9 +130,11 @@ forecast:
     execution:
       batchargs:
         #
-        # On Hera and with config_dt set to 60 seconds:
-        #   With 32 cores, the forecast takes about 736 seconds (12.5 minutes).
-        #   With 80 cores, the forecast takes about 343 seconds ( 5.7 minutes).
+        # On Hera, for a 6-hr forecast with config_dt = 60 sec and output
+        # every hour:
+        #
+        # - With 32 cores, the forecast takes about 736 seconds (12.5 minutes).
+        # - With 80 cores, the forecast takes about 343 seconds ( 5.7 minutes).
         #
 #        cores: 32
 #        walltime: 00:20:00
