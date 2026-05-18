@@ -127,6 +127,13 @@ forecast:
   mpas:
     execution:
       batchargs:
+        #
+        # On Gaea C6, for a 6-hr forecast with config_dt = 60 sec and output
+        # every hour:
+        #
+        # - With 32 cores, the forecast takes about ??? seconds (??.? minutes).
+        # - With 80 cores, the forecast takes about ??? seconds (??.? minutes).
+        #
 #        cores: 32
         cores: 80
 #        walltime: 00:30:00
