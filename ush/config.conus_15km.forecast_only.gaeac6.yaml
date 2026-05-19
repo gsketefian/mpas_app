@@ -41,9 +41,18 @@ user:
 ##  build_type: 'debug'
 #  build_type: 'optimized'
   #
-#  config_mp: 'mp_thompson'
-#  config_mp: 'mp_thompson_aerosols'
-  config_mp: 'mp_tempo'
+  # Settings for external model data from which the initial and boundary
+  # conditions (ICs and LBCs) will be generated or (if the ICs and LBCs
+  # are staged) were generated.
+  #
+  external_model_ics_lbcs: 'GFS'
+  #external_model_ics_lbcs: 'RRFS'
+  #
+  # Microphysics parameterization to use.
+  #
+  config_mp: 'mp_thompson'
+  #config_mp: 'mp_thompson_aerosols'
+  #config_mp: 'mp_tempo'
   #
   workflow_blocks:
     - cold_start_staged_ics_lbcs.yaml
@@ -88,7 +97,8 @@ auxil:
 
 data:
   mesh_files: "/gpfs/f6/wrfruc/scratch/Gerard.Ketefian/mesh_and_static_files"
-  staged_ics_lbcs_dir: "/gpfs/f6/wrfruc/scratch/Gerard.Ketefian/mpas_staged_ics_lbcs"
+  staged_ics_lbcs_basedir: "/gpfs/f6/wrfruc/scratch/Gerard.Ketefian/mpas_staged_ics_lbcs"
+  staged_ics_lbcs_dir: "{{ data.staged_ics_lbcs_basedir }}/{{ user.mesh_label }}/{{ user.first_cycle.strftime('%Y%m%d%H') }}/{{ user.external_model_ics_lbcs}}"
 
 platform:
   scheduler: slurm
@@ -173,7 +183,7 @@ forecast:
       #
       # The initial conditions file.
       #
-      '{{ user.mesh_label }}.init.nc': '{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}/{{user.first_cycle.strftime("%Y%m%d%H")}}/{{ user.mesh_label }}.init.nc'
+      '{{ user.mesh_label }}.init.nc': '{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}.init.nc'
       #
       # Copy the mesh partitioning file that specifies how the cells in the
       # mesh are distributed (partitioned) among MPI processes.  Note that
@@ -221,7 +231,7 @@ forecast:
     lateral_boundary_conditions:
       interval_hours: 6
       offset: 0
-      path: "{{ data.staged_ics_lbcs_dir }}/{{ user.mesh_label }}/{{ user.first_cycle.strftime('%Y%m%d%H') }}"
+      path: "{{ data.staged_ics_lbcs_dir }}"
     #
     # This is the length of the forecast.  Note that even if there is no
     # "update_values:" section under "namelist:" below, the final namelist
