@@ -33,6 +33,7 @@ user:
 #
   first_cycle: !!timestamp 2023-09-15T00:00:00
   last_cycle:  !!timestamp 2023-09-15T00:00:00
+#
   cycle_frequency: 12
 #
   mesh_label: conus_120km
@@ -50,9 +51,9 @@ user:
   #
   # Microphysics parameterization to use.
   #
-  config_mp: 'mp_thompson'
+  #config_mp: 'mp_thompson'
   #config_mp: 'mp_thompson_aerosols'
-  #config_mp: 'mp_tempo'
+  config_mp: 'mp_tempo'
   #
   workflow_blocks:
     - cold_start_staged_ics_lbcs.yaml

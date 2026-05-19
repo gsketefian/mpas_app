@@ -119,15 +119,19 @@ cron:
   # is set to here.  Leave it to its default value.
   crontab_line: None
 
+#
 # Remove the top-level uwtools config sections that are present by default but
 # that are not needed for a forecast-only experiment.
+#
 get_ics_data: !remove
 get_lbcs_data: !remove
 prepare_grib: !remove
 create_ics: !remove
 create_lbcs: !remove
 
+#
 # Remove corresponding tasks in the rocoto workflow section.
+#
 workflow:
   tasks:
     task_get_ics_data: !remove

@@ -33,6 +33,7 @@ user:
 #
   first_cycle: !!timestamp 2025-10-07T00:00:00
   last_cycle:  !!timestamp 2025-10-07T00:00:00
+#
   cycle_frequency: 12
 #
   mesh_label: sagebrush_01km
