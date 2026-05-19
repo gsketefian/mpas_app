@@ -41,8 +41,9 @@ user:
 ##  build_type: 'debug'
 #  build_type: 'optimized'
   #
-  # Settings for external model data from which to generate initial and
-  # boundary conditions.
+  # Settings for external model data from which the initial and boundary
+  # conditions (ICs and LBCs) will be generated or (if the ICs and LBCs
+  # are staged) were generated.
   #
   external_model_ics_lbcs: 'GFS'
   #external_model_ics_lbcs: 'RRFS'

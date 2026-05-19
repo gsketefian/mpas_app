@@ -360,10 +360,16 @@ forecast:
   mpas:
     execution:
       batchargs:
+        #
+        # On Hera, for a 6-hr forecast with config_dt = 60 sec and output
+        # every hour:
+        #
+        # - With 32 cores, the forecast takes about 736 seconds (12.5 minutes).
+        # - With 80 cores, the forecast takes about 343 seconds ( 5.7 minutes).
+        #
 #        cores: 32
-#        walltime: 00:20:00
         cores: 80
-        walltime: 00:10:00
+        walltime: 00:20:00
         native: '--exclusive'
         maxtries: 1
         # This could be set to 'bigmem' on hera to access the big memory nodes there.
