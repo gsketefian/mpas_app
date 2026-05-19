@@ -6,6 +6,7 @@ import argparse
 import logging
 import os
 import sys
+import yaml
 from pathlib import Path
 from shutil import copy
 from subprocess import STDOUT, CalledProcessError, check_output
@@ -23,6 +24,32 @@ from datetime import datetime
 
 from copy import deepcopy
 #from deepdiff import DeepDiff
+
+def _fix_types(obj) -> None:
+    """
+    Recursively walk a config dict and fix string values that should be other
+    types but were produced as strings by Jinja2 rendering:
+      - 'true'/'false' (any case) -> Python bool (so f90nml writes .true./.false.)
+      - '!remove'                  -> delete the key from its parent dict
+    """
+    if isinstance(obj, dict):
+        keys_to_remove = []
+        for k, v in obj.items():
+            if isinstance(v, str):
+                if v.lower() == 'true':
+                    obj[k] = True
+                elif v.lower() == 'false':
+                    obj[k] = False
+                elif v == '!remove':
+                    keys_to_remove.append(k)
+            else:
+                _fix_types(v)
+        for k in keys_to_remove:
+            del obj[k]
+    elif isinstance(obj, list):
+        for item in obj:
+            _fix_types(item)
+
 
 def create_grid_files(expt_dir: Path, mesh_conn_fp: Path, nprocs: int) -> None:
     """
@@ -298,6 +325,15 @@ def main(user_config_files: list[Path, str]) -> None:
         output_file=experiment_file,
         update_config={},
     )
+
+    # Post-process experiment.yaml to fix types that Jinja2 rendering produced
+    # as strings (e.g. 'True'/'False' instead of YAML booleans, '!remove'
+    # instead of key deletion).
+    with open(experiment_file) as f:
+        expt_data = yaml.safe_load(f)
+    _fix_types(expt_data)
+    with open(experiment_file, 'w') as f:
+        yaml.dump(expt_data, f, default_flow_style=False)
 
     # Create the workflow files
     rocoto_xml = expt_dir / Path("rocoto.xml")
