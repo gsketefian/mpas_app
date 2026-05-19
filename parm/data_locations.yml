@@ -236,6 +236,35 @@ RAP:
     file_names:
       <<: *rap_file_names
 
+RRFS:
+  hpss:
+    protocol: htar
+    archive_path:
+      - /NCEPDEV/emc-meso/5year/emc.lam/5year/rh{yyyy}/{yyyymm}/{yyyymmdd}
+    archive_internal_dir:
+      - ./rrfs.{yyyymmdd}/{hh}
+    archive_file_names:
+      grib2:
+        anl:
+#          - lfs_h3_emc_lam_noscrub_ecflow_ptmp_emc.lam_ecflow_rrfs_para_com_rrfs_v1.0_rrfs.{yyyymmdd}00-05.prslev.conus.tar
+#          - lfs_h3_emc_lam_noscrub_ecflow_ptmp_emc.lam_ecflow_rrfs_para_com_rrfs_v1.0_rrfs.{yyyymmdd}06-11.prslev.conus.tar
+#          - lfs_h3_emc_lam_noscrub_ecflow_ptmp_emc.lam_ecflow_rrfs_para_com_rrfs_v1.0_rrfs.{yyyymmdd}12-17.prslev.conus.tar
+#          - lfs_h3_emc_lam_noscrub_ecflow_ptmp_emc.lam_ecflow_rrfs_para_com_rrfs_v1.0_rrfs.{yyyymmdd}18-23.prslev.conus.tar
+          - lfs_h3_emc_lam_noscrub_ecflow_ptmp_emc.lam_ecflow_rrfs_para_com_rrfs_v1.0_rrfs.{yyyymmdd}{bin6}.prslev.conus.tar
+        fcst:
+          - lfs_h3_emc_lam_noscrub_ecflow_ptmp_emc.lam_ecflow_rrfs_para_com_rrfs_v1.0_rrfs.{yyyymmdd}{bin6}.prslev.conus.tar
+    file_names: &rrfs_file_names
+      grib2:
+        anl:
+          - rrfs.t{hh}z.prslev.3km.f000.conus.grib2
+        fcst:
+          - rrfs.t{hh}z.prslev.3km.f{fcst_hr:03d}.conus.grib2
+  aws:
+    protocol: download
+    url: https://noaa-rrfs-pds.s3.amazonaws.com/rrfs_a/rrfs_a.{yyyymmdd}/{hh}/control/
+    file_names:
+      <<: *rrfs_file_names
+
 HRRR:
   hpss:
     protocol: htar
