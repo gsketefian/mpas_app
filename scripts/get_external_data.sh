@@ -11,6 +11,17 @@ else
   fcst_hours="${first_time} ${last_time} ${LBC_INTVL_HRS}"
 fi
 
+# In order to avoid a possible race condition between the get_ics_data
+# and get_lbcs_data tasks in the mpas_app workflow (e.g. both these tasks
+# trying to remove the same temporary directory during the cleanup stage),
+# first create a task-specific work directory (i.e. a work directory whose
+# name depends on whether ICs or LBCs are being retrieved) and then change
+# location to it before calling the python script.
+# 
+work_dir=${OUTPUT_PATH}.work_${ICS_or_LBCS}
+mkdir -p ${work_dir}
+cd ${work_dir}
+
 set -x
 python -u ${MPAS_APP}/ush/retrieve_data.py \
     --debug \
@@ -23,4 +34,8 @@ python -u ${MPAS_APP}/ush/retrieve_data.py \
     --file_fmt grib2 \
     --ics_or_lbcs ${ICS_or_LBCS} \
     --output_path ${OUTPUT_PATH}
+
+# Remove work directory.
+cd ${OUTPUT_PATH}
+rmdir ${work_dir}
 
