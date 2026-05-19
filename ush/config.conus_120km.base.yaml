@@ -31,12 +31,24 @@ user:
 #
 #   "{{ user.first_cycle.strftime('%Y%m%d%H') }}"
 #
+
+#
+# These are the standard dates used in these tests.
+#
 #  first_cycle: !!timestamp 2023-09-15T00:00:00
 #  last_cycle:  !!timestamp 2023-09-15T00:00:00
+#
+#  These are the dates from the sagebrush experiment.
+#
 #  first_cycle: !!timestamp 2025-10-07T00:00:00
 #  last_cycle:  !!timestamp 2025-10-07T00:00:00
+#
+# These are used to test retrieval of RRFS data from AWS because not all
+# dates are available there.  HPSS coverage is much better.
+#
   first_cycle: !!timestamp 2026-05-14T00:00:00
   last_cycle:  !!timestamp 2026-05-14T00:00:00
+#
   cycle_frequency: 12
 #
   mesh_label: conus_120km
@@ -45,14 +57,16 @@ user:
 ##  build_type: 'debug'
 #  build_type: 'optimized'
   #
-  # Info for external model from which to obtain data for generating initial
-  # and boundary conditions.
+  # Settings for external model data from which to generate initial and
+  # boundary conditions.
   #
   #external_model_ics_lbcs: 'GFS'
   external_model_ics_lbcs: 'RRFS'
   #
   #external_model_data_store: 'hpss'
   external_model_data_store: 'aws'
+  #
+  # Microphysics parameterization to use.
   #
   config_mp: 'mp_thompson'
   #config_mp: 'mp_thompson_aerosols'
@@ -98,6 +112,14 @@ auxil:
   mp_table_qr_acr_qg_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qg_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
   mp_table_qi_aut_qs_target: '{%- if user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qi_aut_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
   mp_table_freeze_water_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_freeze_water_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  #
+  # The variable table (Vtable) to use for ungribbing.
+  #
+  # It is not clear whether the Vtable.GFS for the GFS external model
+  # can also be used for RRFS.  If not, a new Vtable is needed for RRFS
+  # (Vtable.RRFS).
+  #
+  vtable: "{{ user.mpas_app }}/parm/ungrib/Vtable.GFS"
   #
   # Directory in which to save the external model files needed for generating
   # initial and boundary conditions.
@@ -190,15 +212,14 @@ prepare_grib:
       forecast_length: 12
       interval_hours: 6
       offset: 0
-      # Full path template of the external model files to be downloaded.
+      #
+      # Full path template on the local machine of the external model files
+      # to be downloaded.  This is where the external model files are found
+      # once this (prepare_grib) task is finished.
+      #
       path: '{{ auxil.get_ics_lbcs_rundir }}/{%- if user.external_model_ics_lbcs == "GFS" -%}gfs.t{cycle_hour:02d}z.pgrb2.0p25.f{forecast_hour:03d}{%- elif user.external_model_ics_lbcs == "RRFS" -%}rrfs.t{cycle_hour:02d}z.prslev.3km.f{forecast_hour:03d}.conus.grib2{%- else -%}file_template_not_specified{%- endif -%}'
     rundir: '{{ user.experiment_dir }}/{{cycle.strftime("%Y%m%d%H")}}/ungrib'
-    #
-    # It is not clear whether the Vtable.GFS for the GFS external model
-    # can also be used for RRFS.  If not, a new Vtable is needed for RRFS
-    # (Vtable.RRFS).
-    #
-    vtable: "{{ user.mpas_app }}/parm/ungrib/Vtable.GFS"
+    vtable: "{{ auxil.vtable }}"
   platform:
     account: '{{ platform.account }}'
     scheduler: '{{ platform.scheduler }}'
