@@ -69,9 +69,9 @@ user:
   #
   # Microphysics parameterization to use.
   #
-  config_mp: 'mp_thompson'
+  #config_mp: 'mp_thompson'
   #config_mp: 'mp_thompson_aerosols'
-  #config_mp: 'mp_tempo'
+  config_mp: 'mp_tempo'
   #
   workflow_blocks:
     - cold_start.yaml
