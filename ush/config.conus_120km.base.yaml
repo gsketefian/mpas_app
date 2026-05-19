@@ -60,11 +60,11 @@ user:
   # Settings for external model data from which to generate initial and
   # boundary conditions.
   #
-  #external_model_ics_lbcs: 'GFS'
-  external_model_ics_lbcs: 'RRFS'
+  external_model_ics_lbcs: 'GFS'
+  #external_model_ics_lbcs: 'RRFS'
   #
-  #external_model_data_store: 'hpss'
-  external_model_data_store: 'aws'
+  external_model_data_store: 'hpss'
+  #external_model_data_store: 'aws'
   #
   # Microphysics parameterization to use.
   #
