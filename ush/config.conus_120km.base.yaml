@@ -35,8 +35,8 @@ user:
 #
 # These are the standard dates used in these tests.
 #
-#  first_cycle: !!timestamp 2023-09-15T00:00:00
-#  last_cycle:  !!timestamp 2023-09-15T00:00:00
+  first_cycle: !!timestamp 2023-09-15T00:00:00
+  last_cycle:  !!timestamp 2023-09-15T00:00:00
 #
 #  These are the dates from the sagebrush experiment.
 #
@@ -46,8 +46,8 @@ user:
 # These are used to test retrieval of RRFS data from AWS because not all
 # dates are available there.  HPSS coverage is much better.
 #
-  first_cycle: !!timestamp 2026-05-14T00:00:00
-  last_cycle:  !!timestamp 2026-05-14T00:00:00
+#  first_cycle: !!timestamp 2026-05-14T00:00:00
+#  last_cycle:  !!timestamp 2026-05-14T00:00:00
 #
   cycle_frequency: 12
 #
