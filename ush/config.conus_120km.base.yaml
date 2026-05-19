@@ -288,6 +288,23 @@ create_ics:
           config_fg_interval: !int "{{ create_ics.mpas_init['boundary_conditions']['interval_hours'] * 3600 }}"
           config_met_prefix: FILE
         vertical_grid:
+          #
+          # Note that setting config_blend_bdy_terrain directly to 
+          #
+          #   {{ auxil.config_blend_bdy_terrain }}
+          #
+          # didn't used to work because Jinja2 rendering produces a string ('true'
+          # or 'false') rather than a Python boolean, and f90nml writes strings as
+          # quoted Fortran character values (e.g. 'True') rather than Fortran logicals
+          # (.true./.false.).
+          #
+          # To work around this, experiment_gen.py was modified to post-processes
+          # experiment.yaml after it is written: strings 'true'/'false' (any case)
+          # are converted to Python booleans, and strings '!remove' are reinterpreted
+          # as the uwtools !remove tag (triggering key deletion).  This allows the
+          # Jinja2-rendered string from {{ auxil.config_blend_bdy_terrain }} to be
+          # correctly written as a Fortran logical in the namelist.
+          #
           config_blend_bdy_terrain: "{{ auxil.config_blend_bdy_terrain }}"
         preproc_stages:
           config_native_gwd_static: false
