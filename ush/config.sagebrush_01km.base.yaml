@@ -377,7 +377,7 @@ create_lbcs:
         type: output
         filename_template: "{{ user.mesh_label }}.sfc_update.nc"
         filename_interval: "none"
-        output_interval: "{{ 24 * 3600 }}"
+        output_interval: "1_00:00:00"
         packages: sfc_update
         clobber_mode: overwrite
       lbc:
