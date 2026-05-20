@@ -62,9 +62,9 @@ user:
   # are staged) were generated.
   #
   external_model_ics_lbcs: 'GFS'
-  # Can't use the RRFS as the external model because the conus_120km domain
-  # extends beyond the CONUS subdomain of the RRFS prslev files that we
-  # currently retrieve for use in generating ICs and LBCs.
+  # Can't use the RRFS as the external model providing data for ICs and LBCs
+  # because the conus_120km domain extends beyond the CONUS subdomain of the
+  # RRFS prslev files that we currently use for generating ICs and LBCs.
   #external_model_ics_lbcs: 'RRFS'
   #
   external_model_data_store: 'hpss'

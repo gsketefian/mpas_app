@@ -47,6 +47,9 @@ user:
   # are staged) were generated.
   #
   external_model_ics_lbcs: 'GFS'
+  # Can't use the RRFS as the external model providing data for ICs and LBCs
+  # because the conus_120km domain extends beyond the CONUS subdomain of the
+  # RRFS prslev files that we currently use for generating ICs and LBCs.
   #external_model_ics_lbcs: 'RRFS'
   #
   # Microphysics parameterization to use.
@@ -274,6 +277,16 @@ forecast:
           config_block_decomp_file_prefix: "{{ user.mesh_label }}.graph.info.part."
         physics:
           config_physics_suite: convection_permitting
+          #
+          # Can't use the hrrrv5 suite because that requires RRFS ICs/LBCs (because
+          # the RUC LSM in the hrrrv5 suite requires the ICs/LBCs to have 9 soil
+          # levels, which the RRFS has but the GFS does not), but the conus_120km
+          # grid extends beyond the RRFS's CONUS domain.  Alternative would be to
+          # use RRFS forecast output files from the whole NA (North America) domain,
+          # but those take too long to download (although it would be ok to do it
+          # only once).
+          #
+          #config_physics_suite: hrrrv5
           config_microp_scheme: '{{ user.config_mp }}'
         #
         # Ideally, we would !remove the physics_mp_tempo namelist from the namelist
