@@ -176,7 +176,10 @@ prepare_grib:
   ungrib:
     execution:
       batchargs:
-        cores: 1
+        # RRFS external model files are much larger than the GFS ones and thus
+        # require more memory.  This is done via an increase in the number of
+        # cores.
+        cores: '{%- if user.external_model_ics_lbcs == "GFS" -%}1{%- elif user.external_model_ics_lbcs == "RRFS" -%}20{%- else -%}0{%- endif -%}'
         walltime: 00:15:00
         native: ''
         maxtries: 1
