@@ -334,20 +334,20 @@ create_lbcs:
         mutable: false
         io_type: "pnetcdf,cdf5"
       surface:
-        filename_template: x1.40962.sfc_update.nc
+        mutable: false
         type: output
+        filename_template: "{{ user.mesh_label }}.sfc_update.nc"
         filename_interval: "none"
-        packages: sfc_update
         output_interval: "{{ 24 * 3600 }}"
+        packages: sfc_update
         clobber_mode: overwrite
-        mutable: false
       lbc:
-        type: output
-        filename_template: lbc.$Y-$M-$D_$h.$m.$s.nc
-        filename_interval: output_interval
-        packages: lbcs
-        output_interval: 06:00:00
         mutable: false
+        type: output
+        filename_template: "lbc.$Y-$M-$D_$h.$m.$s.nc"
+        filename_interval: "output_interval"
+        output_interval: 06:00:00
+        packages: lbcs
   platform:
     account: '{{ platform.account }}'
     scheduler: '{{ platform.scheduler }}'
