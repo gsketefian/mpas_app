@@ -31,6 +31,7 @@ def _fix_types(obj) -> None:
     types but were produced as strings by Jinja2 rendering:
       - 'true'/'false' (any case) -> Python bool (so f90nml writes .true./.false.)
       - '!remove'                  -> delete the key from its parent dict
+      - integer strings            -> Python int
     """
     if isinstance(obj, dict):
         keys_to_remove = []
@@ -42,6 +43,8 @@ def _fix_types(obj) -> None:
                     obj[k] = False
                 elif v == '!remove':
                     keys_to_remove.append(k)
+                elif v.lstrip('-').isdigit():
+                    obj[k] = int(v)
             else:
                 _fix_types(v)
         for k in keys_to_remove:
