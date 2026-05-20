@@ -46,8 +46,8 @@ user:
   # conditions (ICs and LBCs) will be generated or (if the ICs and LBCs
   # are staged) were generated.
   #
-  external_model_ics_lbcs: 'GFS'
-  #external_model_ics_lbcs: 'RRFS'
+  #external_model_ics_lbcs: 'GFS'
+  external_model_ics_lbcs: 'RRFS'
   #
   # Microphysics parameterization to use.
   #
