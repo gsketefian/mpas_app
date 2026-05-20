@@ -114,13 +114,9 @@ auxil:
   mp_table_qi_aut_qs_target: '{%- if user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qi_aut_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
   mp_table_freeze_water_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_freeze_water_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
   #
-  # The variable table (Vtable) to use for ungribbing.
+  # The variable table to use for ungribbing.
   #
-  # It is not clear whether the Vtable.GFS for the GFS external model
-  # can also be used for RRFS.  If not, a new Vtable is needed for RRFS
-  # (Vtable.RRFS).
-  #
-  vtable: "{{ user.mpas_app }}/parm/ungrib/Vtable.GFS"
+  vtable: "{{ user.mpas_app }}/parm/ungrib/Vtable.{{ user.external_model_ics_lbcs }}"
   #
   # Directory in which to save the external model files needed for generating
   # initial and boundary conditions.
