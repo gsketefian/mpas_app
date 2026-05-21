@@ -194,14 +194,20 @@ install_mpas_init () {
 #  make intel-mpi CORE=init_atmosphere ${MAKE_SETTINGS} && \
 #  make intel-mpi-gaea CORE=init_atmosphere ${MAKE_SETTINGS} && \
 #  make cray CORE=init_atmosphere ${MAKE_SETTINGS} && \
-  make ${MAKE_SETTINGS} ${MAKE_TARGET} CORE=init_atmosphere && \
-  echo "Finished building executable 'init_atmosphere_model' (CORE='init_atmosphere')."
+  make ${MAKE_SETTINGS} ${MAKE_TARGET} CORE=init_atmosphere && {
+  echo "Finished building executable 'init_atmosphere_model' (CORE='init_atmosphere')." ;
 #
 # Copy the "init_atmosphere_model" exectuable into a subdirectory directly
 # under the top-level directory of mpas_app that is separate from the MPAS-Model
 # directory.
 #
-  cp -v init_atmosphere_model ${EXEC_DIR}
+  echo "Copying 'init_atmosphere_model' executable from under MPAS-Model directory to \'${EXEC_DIR}\' ..." ;
+  cp -v init_atmosphere_model ${EXEC_DIR} ;
+} || {
+  echo "ERROR: Build of 'init_atmosphere_model' (CORE='init_atmosphere') failed. Exiting." ;
+  popd ;
+  exit 1 ;
+}
 #
 # Clean the init_atmosphere core after copying its exectuable into a
 # subdirectory directory under the top-level directory of mpas_app.
@@ -291,15 +297,20 @@ install_mpas_model () {
 #  make intel-mpi CORE=atmosphere ${MAKE_SETTINGS}
 #  make intel-mpi-gaea CORE=atmosphere ${MAKE_SETTINGS}
 #  make cray CORE=atmosphere ${MAKE_SETTINGS}
-  make ${MAKE_SETTINGS} ${MAKE_TARGET} CORE=atmosphere && \
-  echo "Finished building executable 'atmosphere_model' (CORE='atmosphere')."
+  make ${MAKE_SETTINGS} ${MAKE_TARGET} CORE=atmosphere && {
+  echo "Finished building executable 'atmosphere_model' (CORE='atmosphere')." ;
 #
 # Copy the "atmosphere_model" exectuable into a subdirectory directly under
 # the top-level directory of mpas_app that is separate from the MPAS-Model
 # directory.
 #
-  echo "Copying 'atmosphere_model' executable from under MPAS-Model directory to \'${EXEC_DIR}\' ..."
-  cp -v atmosphere_model ${EXEC_DIR}
+  echo "Copying 'atmosphere_model' executable from under MPAS-Model directory to \'${EXEC_DIR}\' ..." ;
+  cp -v atmosphere_model ${EXEC_DIR} ;
+} || {
+  echo "ERROR: Build of 'atmosphere_model' (CORE='atmosphere') failed. Exiting." ;
+  popd ;
+  exit 1 ;
+}
 #
 # Generate microphysics tables.
 #
