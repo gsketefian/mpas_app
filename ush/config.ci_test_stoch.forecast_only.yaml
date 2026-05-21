@@ -41,13 +41,14 @@ user:
 ##  build_type: 'debug'
 #  build_type: 'optimized'
   #
-  # For this CI test case, config_mp must be set to 'mp_tempo' because the namelist
-  # that is copied into the forecast directory has 'mp_tempo' hard-coded in it.
-  # (We could change the setting in the namelist file via the namelist.update_values
-  # section below, but to make sure this test exactly uses the CI test settings, we
-  # will use the namelist without modifications.
+  # Physics suite to use.
   #
-  config_mp: 'mp_tempo'
+  config_physics_suite: convection_permitting
+  #config_physics_suite: hrrrv5
+  #
+  # Set config_mp based on the physics suite: hrrrv5 uses mp_tempo, convection_permitting uses mp_thompson.
+  #
+  config_mp: '{%- if user.config_physics_suite == "hrrrv5" -%}mp_tempo{%- elif user.config_physics_suite == "convection_permitting" -%}mp_thompson{%- else -%}suite{%- endif -%}'
   #
   workflow_blocks:
     - cold_start_staged_ics_lbcs.yaml
@@ -93,7 +94,7 @@ auxil:
   # Directories in which input for the CI test (e.g. namelists, stream definitions,
   # ICs, LBCs, etc) is located.
   #
-  mpas_model_ci_case_dir: "{{ auxil.mpas_model_dir }}/testing_and_setup/ufs-community/cases/ufscommunity.convection_permitting.gfs.winter.stoch"
+  mpas_model_ci_case_dir: "{{ auxil.mpas_model_dir }}/testing_and_setup/ufs-community/cases/ufscommunity.{{ user.config_physics_suite }}.gfs.winter.stoch"
   mpas_model_ci_data_dir: "{{ auxil.mpas_model_dir }}/testing_and_setup/ufs-community/data"
 
 data:
