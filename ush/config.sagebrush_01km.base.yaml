@@ -174,7 +174,7 @@ auxil:
 
 data:
   mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/mesh_and_static_files"
-  geog_data_path: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/generate_static/mpas_static/"
+  geog_data_path: '{%- if user.physics_suite == "hrrrv5" -%}/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/generate_static/mpas_static/{%- else -%}!remove{%- endif -%}'
 
 platform:
   scheduler: slurm
@@ -313,7 +313,7 @@ create_ics:
           config_nfglevels: !int '{{ auxil.config_nfglevels }}'
           config_nfgsoillevels: !int '{{ auxil.config_nfgsoillevels }}'
         data_sources:
-          config_geog_data_path: '{{ data.geog_data_path }}'
+          config_geog_data_path: '{%- if user.physics_suite == "hrrrv5" -%}{{ data.geog_data_path }}{%- else -%}!remove{%- endif -%}'
           config_fg_interval: !int "{{ create_ics.mpas_init['boundary_conditions']['interval_hours'] * 3600 }}"
           config_met_prefix: FILE
         vertical_grid:
@@ -345,7 +345,7 @@ create_ics:
           # dependent and must be generated for each new MPAS mesh.  This naming
           # convention is likely an oversight.
           #
-          config_native_gwd_gsl_static: '{%- if user.config_physics_suite == "hrrrv5" -%}true{%- else -%}false{%- endif -%}'
+          config_native_gwd_gsl_static: '{%- if user.physics_suite == "hrrrv5" -%}true{%- else -%}false{%- endif -%}'
           config_static_interp: false
         decomposition:
           config_block_decomp_file_prefix: "{{ user.mesh_label }}.graph.info.part."
