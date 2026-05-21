@@ -52,17 +52,17 @@ user:
   external_model_data_store: 'hpss'
   #external_model_data_store: 'aws'
   #
-  # Physics suite to use.
+  # Specify physics suite.
   #
-  #config_physics_suite: 'convection_permitting'
-  config_physics_suite: 'hrrrv5'
+  #physics_suite: 'convection_permitting'
+  physics_suite: 'hrrrv5'
   #
-  # Microphysics parameterization to use.
+  # Specify microphysics parameterization.
   #
-  #config_mp: 'mp_thompson'
-  #config_mp: 'mp_thompson_aerosols'
-  #config_mp: 'mp_tempo'
-  config_mp: 'suite'
+  #mp_param: 'mp_thompson'
+  #mp_param: 'mp_thompson_aerosols'
+  #mp_param: 'mp_tempo'
+  mp_param: 'suite'
   #
   workflow_blocks:
     - cold_start.yaml
@@ -89,21 +89,21 @@ auxil:
   #   a tracked file in the TEMPO submodule and is thus immediately available
   #   after MPAS-Model is (recursively) cloned. 
   #
-  mp_table_ccn_activate_symlink: '{%- if user.config_mp == "mp_tempo" -%}ccn_activate.bin{%- elif user.config_mp == "mp_thompson_aerosols" -%}CCN_ACTIVATE_DATA{%- else -%}unused_mp_table_ccn_activate{%- endif -%}'
-  mp_table_qr_acr_qs_symlink: '{%- if user.config_mp == "mp_tempo" -%}qr_acr_qs_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQS_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qs{%- endif -%}'
-  mp_table_qr_acr_qg_symlink: '{%- if user.config_mp == "mp_tempo" -%}qr_acr_qg_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQG_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qg{%- endif -%}'
-  mp_table_qi_aut_qs_symlink: '{%- if user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QIautQS_DATA.DBL{%- else -%}unused_mp_table_qi_aut_qs{%- endif -%}'
-  mp_table_freeze_water_symlink: '{%- if user.config_mp == "mp_tempo" -%}freeze_water_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_freezeH2O_DATA.DBL{%- else -%}unused_mp_table_freeze_water{%- endif -%}'
+  mp_table_ccn_activate_symlink: '{%- if user.mp_param == "mp_tempo" -%}ccn_activate.bin{%- elif user.mp_param == "mp_thompson_aerosols" -%}CCN_ACTIVATE_DATA{%- else -%}unused_mp_table_ccn_activate{%- endif -%}'
+  mp_table_qr_acr_qs_symlink: '{%- if user.mp_param == "mp_tempo" -%}qr_acr_qs_data_tempo_v3{%- elif user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQS_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qs{%- endif -%}'
+  mp_table_qr_acr_qg_symlink: '{%- if user.mp_param == "mp_tempo" -%}qr_acr_qg_data_tempo_v3{%- elif user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQG_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qg{%- endif -%}'
+  mp_table_qi_aut_qs_symlink: '{%- if user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QIautQS_DATA.DBL{%- else -%}unused_mp_table_qi_aut_qs{%- endif -%}'
+  mp_table_freeze_water_symlink: '{%- if user.mp_param == "mp_tempo" -%}freeze_water_data_tempo_v3{%- elif user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_freezeH2O_DATA.DBL{%- else -%}unused_mp_table_freeze_water{%- endif -%}'
   #
   # The full paths to the targets that the micophysics symlinks above must
   # point to.  As above, these depend on the microphysics parameterization
   # being used.
   #
-  mp_table_ccn_activate_target: '{%- if user.config_mp == "mp_tempo" -%}{{ auxil.tempo_submodule_dir }}/tables/{{ auxil.mp_table_ccn_activate_symlink }}{%- elif user.config_mp == "mp_thompson_aerosols" -%}{{ auxil.wrf_physics_tables_dir }}/{{ auxil.mp_table_ccn_activate_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qr_acr_qs_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qr_acr_qg_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qg_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qi_aut_qs_target: '{%- if user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qi_aut_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_freeze_water_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_freeze_water_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_ccn_activate_target: '{%- if user.mp_param == "mp_tempo" -%}{{ auxil.tempo_submodule_dir }}/tables/{{ auxil.mp_table_ccn_activate_symlink }}{%- elif user.mp_param == "mp_thompson_aerosols" -%}{{ auxil.wrf_physics_tables_dir }}/{{ auxil.mp_table_ccn_activate_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qr_acr_qs_target: '{%- if user.mp_param in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qr_acr_qg_target: '{%- if user.mp_param in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qg_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qi_aut_qs_target: '{%- if user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qi_aut_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_freeze_water_target: '{%- if user.mp_param in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_freeze_water_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
   #
   # The variable table to use for ungribbing.
   #
@@ -497,8 +497,8 @@ forecast:
       #
       # Create symlinks to these two files.
       #
-      x1.40962.ugwp_oro_data.nc: '{%- if user.config_physics_suite == "hrrrv5" -%}{{ create_ics.mpas_init["rundir"] }}/x1.40962.ugwp_oro_data.nc{%- else -%}!remove{%- endif -%}'
-      ugwp_limb_tau.nc: '{%- if user.config_physics_suite == "hrrrv5" -%}{{ auxil.wrf_physics_tables_dir }}/ugwp_limb_tau.nc{%- else -%}!remove{%- endif -%}'
+      x1.40962.ugwp_oro_data.nc: '{%- if user.physics_suite == "hrrrv5" -%}{{ create_ics.mpas_init["rundir"] }}/x1.40962.ugwp_oro_data.nc{%- else -%}!remove{%- endif -%}'
+      ugwp_limb_tau.nc: '{%- if user.physics_suite == "hrrrv5" -%}{{ auxil.wrf_physics_tables_dir }}/ugwp_limb_tau.nc{%- else -%}!remove{%- endif -%}'
     #
     # If the lateral_boundary_conditions: key is present here (i.e. we do not
     # "!remove" it), the boundary_files method in the mpas.py script of uwtools
@@ -548,15 +548,15 @@ forecast:
         decomposition:
           config_block_decomp_file_prefix: "{{ user.mesh_label }}.graph.info.part."
         physics:
-          config_physics_suite: '{{ user.config_physics_suite }}'
-          config_microp_scheme: '{{ user.config_mp }}'
+          config_physics_suite: '{{ user.physics_suite }}'
+          config_microp_scheme: '{{ user.mp_param }}'
         #
         # Ideally, we would !remove the physics_mp_tempo namelist from the namelist
         # file when the microphysics used is not TEMPO.  But that doesn't seem to
         # work, so we simply leave it in since it's not used when the microphysics
         # isn't TEMPO.
         #
-        #physics_mp_tempo: '{%- if user.config_mp != "mp_tempo" -%}!remove{%- endif -%}'
+        #physics_mp_tempo: '{%- if user.mp_param != "mp_tempo" -%}!remove{%- endif -%}'
         physics_mp_tempo:
           config_tempo_hailaware: True
     rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/forecast'
