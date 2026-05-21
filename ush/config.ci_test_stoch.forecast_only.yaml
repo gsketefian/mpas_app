@@ -41,14 +41,15 @@ user:
 ##  build_type: 'debug'
 #  build_type: 'optimized'
   #
-  # Physics suite to use.
+  # Specify physics suite.
   #
-  config_physics_suite: convection_permitting
-  #config_physics_suite: hrrrv5
+  #physics_suite: convection_permitting
+  physics_suite: hrrrv5
   #
-  # Set config_mp based on the physics suite: hrrrv5 uses mp_tempo, convection_permitting uses mp_thompson.
+  # Set the microphysics parameterization based on the physics suite: hrrrv5
+  # uses mp_tempo, convection_permitting uses mp_thompson.
   #
-  config_mp: '{%- if user.config_physics_suite == "hrrrv5" -%}mp_tempo{%- elif user.config_physics_suite == "convection_permitting" -%}mp_thompson{%- else -%}suite{%- endif -%}'
+  mp_param: '{%- if user.physics_suite == "hrrrv5" -%}mp_tempo{%- elif user.physics_suite == "convection_permitting" -%}mp_thompson{%- else -%}suite{%- endif -%}'
   #
   workflow_blocks:
     - cold_start_staged_ics_lbcs.yaml
@@ -75,26 +76,26 @@ auxil:
   #   a tracked file in the TEMPO submodule and is thus immediately available
   #   after MPAS-Model is (recursively) cloned. 
   #
-  mp_table_ccn_activate_symlink: '{%- if user.config_mp == "mp_tempo" -%}ccn_activate.bin{%- elif user.config_mp == "mp_thompson_aerosols" -%}CCN_ACTIVATE_DATA{%- else -%}unused_mp_table_ccn_activate{%- endif -%}'
-  mp_table_qr_acr_qs_symlink: '{%- if user.config_mp == "mp_tempo" -%}qr_acr_qs_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQS_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qs{%- endif -%}'
-  mp_table_qr_acr_qg_symlink: '{%- if user.config_mp == "mp_tempo" -%}qr_acr_qg_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQG_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qg{%- endif -%}'
-  mp_table_qi_aut_qs_symlink: '{%- if user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QIautQS_DATA.DBL{%- else -%}unused_mp_table_qi_aut_qs{%- endif -%}'
-  mp_table_freeze_water_symlink: '{%- if user.config_mp == "mp_tempo" -%}freeze_water_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_freezeH2O_DATA.DBL{%- else -%}unused_mp_table_freeze_water{%- endif -%}'
+  mp_table_ccn_activate_symlink: '{%- if user.mp_param == "mp_tempo" -%}ccn_activate.bin{%- elif user.mp_param == "mp_thompson_aerosols" -%}CCN_ACTIVATE_DATA{%- else -%}unused_mp_table_ccn_activate{%- endif -%}'
+  mp_table_qr_acr_qs_symlink: '{%- if user.mp_param == "mp_tempo" -%}qr_acr_qs_data_tempo_v3{%- elif user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQS_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qs{%- endif -%}'
+  mp_table_qr_acr_qg_symlink: '{%- if user.mp_param == "mp_tempo" -%}qr_acr_qg_data_tempo_v3{%- elif user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQG_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qg{%- endif -%}'
+  mp_table_qi_aut_qs_symlink: '{%- if user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QIautQS_DATA.DBL{%- else -%}unused_mp_table_qi_aut_qs{%- endif -%}'
+  mp_table_freeze_water_symlink: '{%- if user.mp_param == "mp_tempo" -%}freeze_water_data_tempo_v3{%- elif user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_freezeH2O_DATA.DBL{%- else -%}unused_mp_table_freeze_water{%- endif -%}'
   #
   # The full paths to the targets that the micophysics symlinks above must
   # point to.  As above, these depend on the microphysics parameterization
   # being used.
   #
-  mp_table_ccn_activate_target: '{%- if user.config_mp == "mp_tempo" -%}{{ auxil.tempo_submodule_dir }}/tables/{{ auxil.mp_table_ccn_activate_symlink }}{%- elif user.config_mp == "mp_thompson_aerosols" -%}{{ auxil.wrf_physics_tables_dir }}/{{ auxil.mp_table_ccn_activate_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qr_acr_qs_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qr_acr_qg_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qg_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qi_aut_qs_target: '{%- if user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qi_aut_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_freeze_water_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_freeze_water_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_ccn_activate_target: '{%- if user.mp_param == "mp_tempo" -%}{{ auxil.tempo_submodule_dir }}/tables/{{ auxil.mp_table_ccn_activate_symlink }}{%- elif user.mp_param == "mp_thompson_aerosols" -%}{{ auxil.wrf_physics_tables_dir }}/{{ auxil.mp_table_ccn_activate_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qr_acr_qs_target: '{%- if user.mp_param in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qr_acr_qg_target: '{%- if user.mp_param in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qg_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qi_aut_qs_target: '{%- if user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qi_aut_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_freeze_water_target: '{%- if user.mp_param in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_freeze_water_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
   #
   # Directories in which input for the CI test (e.g. namelists, stream definitions,
   # ICs, LBCs, etc) is located.
   #
-  mpas_model_ci_case_dir: "{{ auxil.mpas_model_dir }}/testing_and_setup/ufs-community/cases/ufscommunity.{{ user.config_physics_suite }}.gfs.winter.stoch"
+  mpas_model_ci_case_dir: "{{ auxil.mpas_model_dir }}/testing_and_setup/ufs-community/cases/ufscommunity.{{ user.physics_suite }}.gfs.winter.stoch"
   mpas_model_ci_data_dir: "{{ auxil.mpas_model_dir }}/testing_and_setup/ufs-community/data"
 
 data:
