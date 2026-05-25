@@ -129,13 +129,37 @@ cron:
   # This will be set by the experiment generation script, so it doesn't matter what it
   # is set to here.  Leave it to its default value.
   crontab_line: None
-
+#
 # Remove the top-level uwtools config sections that are present by default but
 # that are not needed for a forecast-only experiment.
+#
+
+#
+# Configuration section for retrieving external model data from which to
+# generate initial conditions.
+#
 get_ics_data: !remove
+#
+# Configuration section for retrieving external model data from which to
+# generate boundary conditions.
+#
 get_lbcs_data: !remove
+#
+# Configuration section for "ungrbbing" the external model data for ICs and
+# LBCs by converting them to WPS (WRF Preprocessing System) "intermediate"
+# files.
+#
 prepare_grib: !remove
+#
+# Generate initial conditions on the MPAS mesh from the WPS intermediate-
+# format file at the initial time.
+#
 create_ics: !remove
+#
+# Generate lateral boundary conditions along the edges of the MPAS mesh
+# from the WPS intermediate-format files at the various boundary-update
+# times.
+#
 create_lbcs: !remove
 
 # Remove corresponding tasks in the rocoto workflow section.
@@ -146,7 +170,9 @@ workflow:
     task_ungrib: !remove
     task_mpas_ics: !remove
     task_mpas_lbcs: !remove
-
+#
+# Run forecast(s).
+#
 forecast:
   mpas:
     execution:
