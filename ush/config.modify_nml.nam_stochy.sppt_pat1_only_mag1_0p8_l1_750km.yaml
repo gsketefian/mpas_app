@@ -5,7 +5,7 @@ forecast:
       update_values:
         nam_stochy:
           do_sppt: true
+          config_sppt_1: 0.8
           config_sppt_2: 0.0
           config_sppt_3: 0.0
-          config_sppt_lscale_1: 250000
-          config_sppt_tau_1: 10800
+          config_sppt_lscale_1: 750000
