@@ -42,21 +42,40 @@ user:
 ##  build_type: 'debug'
 #  build_type: 'optimized'
   #
+  # Specify physics suite.
+  #
+  # Can't use the hrrrv5 suite because that requires RRFS ICs/LBCs (because
+  # the RUC LSM in the hrrrv5 suite requires the ICs/LBCs to have 9 soil
+  # levels, which the RRFS has but the GFS does not), but the conus_120km
+  # grid extends beyond the RRFS's CONUS domain.  Alternative would be to
+  # use RRFS forecast output files from the whole NA (North America) domain,
+  # but those take too long to download (although it would be ok to do it
+  # only once).
+  #
+  physics_suite: convection_permitting
+  #physics_suite: hrrrv5
+  #
+  # Set the microphysics parameterization based on the physics suite: hrrrv5
+  # uses mp_tempo, convection_permitting uses mp_thompson.
+  #
+  #config_mp: 'mp_thompson'
+  #config_mp: 'mp_thompson_aerosols'
+  #config_mp: 'mp_tempo'
+  mp_param: '{%- if user.physics_suite == "hrrrv5" -%}mp_tempo{%- elif user.physics_suite == "convection_permitting" -%}mp_thompson{%- else -%}suite{%- endif -%}'
+  #
   # Settings for external model data from which the initial and boundary
   # conditions (ICs and LBCs) will be generated or (if the ICs and LBCs
   # are staged) were generated.
   #
-  external_model_ics_lbcs: 'GFS'
-  # Can't use the RRFS as the external model providing data for ICs and LBCs
+  # Note:
+  # We can't use the RRFS as the external model providing data for ICs and LBCs
   # because the conus_120km domain extends beyond the CONUS subdomain of the
   # RRFS prslev files that we currently use for generating ICs and LBCs.
   #external_model_ics_lbcs: 'RRFS'
+  external_model_ics_lbcs: 'GFS'
   #
-  # Microphysics parameterization to use.
-  #
-  #config_mp: 'mp_thompson'
-  #config_mp: 'mp_thompson_aerosols'
-  config_mp: 'mp_tempo'
+  external_model_data_store: 'hpss'
+  #external_model_data_store: 'aws'
   #
   workflow_blocks:
     - cold_start_staged_ics_lbcs.yaml
@@ -83,21 +102,21 @@ auxil:
   #   a tracked file in the TEMPO submodule and is thus immediately available
   #   after MPAS-Model is (recursively) cloned. 
   #
-  mp_table_ccn_activate_symlink: '{%- if user.config_mp == "mp_tempo" -%}ccn_activate.bin{%- elif user.config_mp == "mp_thompson_aerosols" -%}CCN_ACTIVATE_DATA{%- else -%}unused_mp_table_ccn_activate{%- endif -%}'
-  mp_table_qr_acr_qs_symlink: '{%- if user.config_mp == "mp_tempo" -%}qr_acr_qs_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQS_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qs{%- endif -%}'
-  mp_table_qr_acr_qg_symlink: '{%- if user.config_mp == "mp_tempo" -%}qr_acr_qg_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQG_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qg{%- endif -%}'
-  mp_table_qi_aut_qs_symlink: '{%- if user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QIautQS_DATA.DBL{%- else -%}unused_mp_table_qi_aut_qs{%- endif -%}'
-  mp_table_freeze_water_symlink: '{%- if user.config_mp == "mp_tempo" -%}freeze_water_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_freezeH2O_DATA.DBL{%- else -%}unused_mp_table_freeze_water{%- endif -%}'
+  mp_table_ccn_activate_symlink: '{%- if user.mp_param == "mp_tempo" -%}ccn_activate.bin{%- elif user.mp_param == "mp_thompson_aerosols" -%}CCN_ACTIVATE_DATA{%- else -%}unused_mp_table_ccn_activate{%- endif -%}'
+  mp_table_qr_acr_qs_symlink: '{%- if user.mp_param == "mp_tempo" -%}qr_acr_qs_data_tempo_v3{%- elif user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQS_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qs{%- endif -%}'
+  mp_table_qr_acr_qg_symlink: '{%- if user.mp_param == "mp_tempo" -%}qr_acr_qg_data_tempo_v3{%- elif user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQG_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qg{%- endif -%}'
+  mp_table_qi_aut_qs_symlink: '{%- if user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QIautQS_DATA.DBL{%- else -%}unused_mp_table_qi_aut_qs{%- endif -%}'
+  mp_table_freeze_water_symlink: '{%- if user.mp_param == "mp_tempo" -%}freeze_water_data_tempo_v3{%- elif user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_freezeH2O_DATA.DBL{%- else -%}unused_mp_table_freeze_water{%- endif -%}'
   #
   # The full paths to the targets that the micophysics symlinks above must
   # point to.  As above, these depend on the microphysics parameterization
   # being used.
   #
-  mp_table_ccn_activate_target: '{%- if user.config_mp == "mp_tempo" -%}{{ auxil.tempo_submodule_dir }}/tables/{{ auxil.mp_table_ccn_activate_symlink }}{%- elif user.config_mp == "mp_thompson_aerosols" -%}{{ auxil.wrf_physics_tables_dir }}/{{ auxil.mp_table_ccn_activate_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qr_acr_qs_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qr_acr_qg_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qg_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qi_aut_qs_target: '{%- if user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qi_aut_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_freeze_water_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_freeze_water_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_ccn_activate_target: '{%- if user.mp_param == "mp_tempo" -%}{{ auxil.tempo_submodule_dir }}/tables/{{ auxil.mp_table_ccn_activate_symlink }}{%- elif user.mp_param == "mp_thompson_aerosols" -%}{{ auxil.wrf_physics_tables_dir }}/{{ auxil.mp_table_ccn_activate_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qr_acr_qs_target: '{%- if user.mp_param in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qr_acr_qg_target: '{%- if user.mp_param in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qg_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qi_aut_qs_target: '{%- if user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qi_aut_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_freeze_water_target: '{%- if user.mp_param in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_freeze_water_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
 
 data:
   mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/mesh_and_static_files"
@@ -126,10 +145,33 @@ cron:
 # Remove the top-level uwtools config sections that are present by default but
 # that are not needed for a forecast-only experiment.
 #
+
+#
+# Configuration section for retrieving external model data from which to
+# generate initial conditions.
+#
 get_ics_data: !remove
+#
+# Configuration section for retrieving external model data from which to
+# generate boundary conditions.
+#
 get_lbcs_data: !remove
+#
+# Configuration section for "ungrbbing" the external model data for ICs and
+# LBCs by converting them to WPS (WRF Preprocessing System) "intermediate"
+# files.
+#
 prepare_grib: !remove
+#
+# Generate initial conditions on the MPAS mesh from the WPS intermediate-
+# format file at the initial time.
+#
 create_ics: !remove
+#
+# Generate lateral boundary conditions along the edges of the MPAS mesh
+# from the WPS intermediate-format files at the various boundary-update
+# times.
+#
 create_lbcs: !remove
 
 #
@@ -142,7 +184,9 @@ workflow:
     task_ungrib: !remove
     task_mpas_ics: !remove
     task_mpas_lbcs: !remove
-
+#
+# Run forecast(s).
+#
 forecast:
   mpas:
     execution:
@@ -276,25 +320,15 @@ forecast:
         decomposition:
           config_block_decomp_file_prefix: "{{ user.mesh_label }}.graph.info.part."
         physics:
-          config_physics_suite: convection_permitting
-          #
-          # Can't use the hrrrv5 suite because that requires RRFS ICs/LBCs (because
-          # the RUC LSM in the hrrrv5 suite requires the ICs/LBCs to have 9 soil
-          # levels, which the RRFS has but the GFS does not), but the conus_120km
-          # grid extends beyond the RRFS's CONUS domain.  Alternative would be to
-          # use RRFS forecast output files from the whole NA (North America) domain,
-          # but those take too long to download (although it would be ok to do it
-          # only once).
-          #
-          #config_physics_suite: hrrrv5
-          config_microp_scheme: '{{ user.config_mp }}'
+          config_physics_suite: "{{ user.physics_suite }}"
+          config_microp_scheme: '{{ user.mp_param }}'
         #
         # Ideally, we would !remove the physics_mp_tempo namelist from the namelist
         # file when the microphysics used is not TEMPO.  But that doesn't seem to
         # work, so we simply leave it in since it's not used when the microphysics
         # isn't TEMPO.
         #
-        #physics_mp_tempo: '{%- if user.config_mp != "mp_tempo" -%}!remove{%- endif -%}'
+        #physics_mp_tempo: '{%- if user.mp_param != "mp_tempo" -%}!remove{%- endif -%}'
         physics_mp_tempo:
           config_tempo_hailaware: True
     rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/forecast'
