@@ -36,7 +36,7 @@ def run_spptint_testset(mpas_config, spptint_vals, num_runs):
     # Convert lscale_1 to meters and then to a string with the appropriate
     # format to use in forming a file or directory name.
     lscale1_km_int = int(lscale_1/1000)
-    lscale1_km_str = f'l1_{lscale1_km_int:04d}km'
+    lscale1_km_str = f'l1_mag_0p8_scale_{lscale1_km_int:04d}km'
 
     # Create a string for the time step that is appropriate to use in 
     # forming a file or directory name.
