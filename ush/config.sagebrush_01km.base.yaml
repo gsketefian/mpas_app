@@ -42,6 +42,20 @@ user:
 ##  build_type: 'debug'
 #  build_type: 'optimized'
   #
+  # Specify physics suite.
+  #
+  physics_suite: convection_permitting
+  #physics_suite: hrrrv5
+  #
+  # Set the microphysics parameterization based on the physics suite: hrrrv5
+  # uses mp_tempo, convection_permitting uses mp_thompson.
+  #
+  #mp_param: 'mp_thompson'
+  #mp_param: 'mp_thompson_aerosols'
+  #mp_param: 'mp_tempo'
+  #mp_param: 'suite'
+  mp_param: '{%- if user.physics_suite == "hrrrv5" -%}mp_tempo{%- elif user.physics_suite == "convection_permitting" -%}mp_thompson{%- else -%}suite{%- endif -%}'
+  #
   # Settings for external model data from which the initial and boundary
   # conditions (ICs and LBCs) will be generated or (if the ICs and LBCs
   # are staged) were generated.
@@ -51,18 +65,6 @@ user:
   #
   external_model_data_store: 'hpss'
   #external_model_data_store: 'aws'
-  #
-  # Specify physics suite.
-  #
-  #physics_suite: 'convection_permitting'
-  physics_suite: 'hrrrv5'
-  #
-  # Specify microphysics parameterization.
-  #
-  #mp_param: 'mp_thompson'
-  #mp_param: 'mp_thompson_aerosols'
-  #mp_param: 'mp_tempo'
-  mp_param: 'suite'
   #
   workflow_blocks:
     - cold_start.yaml
@@ -112,7 +114,7 @@ auxil:
   # Directory in which to save the external model files needed for generating
   # initial and boundary conditions.
   #
-  get_ics_lbcs_rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/{{ user.external_model_ics_lbcs }}'
+  external_model_staging_dir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/{{ user.external_model_ics_lbcs }}'
   #
   # The variable in the init_atmosphere namelist that specifies the initial
   # guess for the number of levels.  It is described in the MPAS-Model code
@@ -193,7 +195,10 @@ cron:
   # This will be set by the experiment generation script, so it doesn't matter what it
   # is set to here.  Leave it to its default value.
   crontab_line: None
-
+#
+# Configuration section for retrieving external model data from which to
+# generate initial conditions.
+#
 get_ics_data:
   execution:
     cores: 1
@@ -202,8 +207,11 @@ get_ics_data:
     maxtries: 1
   external_model: '{{ user.external_model_ics_lbcs }}'
   data_stores: '{{ user.external_model_data_store }}'
-  rundir: '{{ auxil.get_ics_lbcs_rundir }}'
-
+  rundir: '{{ auxil.external_model_staging_dir }}'
+#
+# Configuration section for retrieving external model data from which to
+# generate boundary conditions.
+#
 get_lbcs_data:
   execution:
     cores: 1
@@ -212,8 +220,12 @@ get_lbcs_data:
     maxtries: 1
   external_model: '{{ user.external_model_ics_lbcs }}'
   data_stores: '{{ user.external_model_data_store }}'
-  rundir: '{{ auxil.get_ics_lbcs_rundir }}'
-
+  rundir: '{{ auxil.external_model_staging_dir }}'
+#
+# Configuration section for "ungrbbing" the external model data for ICs and
+# LBCs by converting them to WPS (WRF Preprocessing System) "intermediate"
+# files.
+#
 prepare_grib:
   ungrib:
     execution:
@@ -244,13 +256,16 @@ prepare_grib:
       # to be downloaded.  This is where the external model files are found
       # once this (prepare_grib) task is finished.
       #
-      path: '{{ auxil.get_ics_lbcs_rundir }}/{%- if user.external_model_ics_lbcs == "GFS" -%}gfs.t{cycle_hour:02d}z.pgrb2.0p25.f{forecast_hour:03d}{%- elif user.external_model_ics_lbcs == "RRFS" -%}rrfs.t{cycle_hour:02d}z.prslev.3km.f{forecast_hour:03d}.conus.grib2{%- else -%}file_template_not_specified{%- endif -%}'
+      path: '{{ auxil.external_model_staging_dir }}/{%- if user.external_model_ics_lbcs == "GFS" -%}gfs.t{cycle_hour:02d}z.pgrb2.0p25.f{forecast_hour:03d}{%- elif user.external_model_ics_lbcs == "RRFS" -%}rrfs.t{cycle_hour:02d}z.prslev.3km.f{forecast_hour:03d}.conus.grib2{%- else -%}file_template_not_specified{%- endif -%}'
     rundir: '{{ user.experiment_dir }}/{{cycle.strftime("%Y%m%d%H")}}/ungrib'
     vtable: "{{ auxil.vtable }}"
   platform:
     account: '{{ platform.account }}'
     scheduler: '{{ platform.scheduler }}'
-
+#
+# Generate initial conditions on the MPAS mesh from the WPS intermediate-
+# format file at the initial time.
+#
 create_ics:
   mpas_init: &mpas_init_config
     boundary_conditions:
@@ -374,7 +389,11 @@ create_ics:
   platform:
     account: '{{ platform.account }}'
     scheduler: '{{ platform.scheduler }}'
-
+#
+# Generate lateral boundary conditions along the edges of the MPAS mesh
+# from the WPS intermediate-format files at the various boundary-update
+# times.
+#
 create_lbcs:
   mpas_init:
     <<: *mpas_init_config
@@ -413,7 +432,9 @@ create_lbcs:
   platform:
     account: '{{ platform.account }}'
     scheduler: '{{ platform.scheduler }}'
-
+#
+# Run forecast(s).
+#
 forecast:
   mpas:
     execution:
@@ -458,7 +479,7 @@ forecast:
       #
       # The initial conditions file.
       #
-      "{{ user.mesh_label }}.init.nc": "{{ create_ics.mpas_init['rundir'] }}/{{ user.mesh_label }}.init.nc"
+      '{{ user.mesh_label }}.init.nc': '{{ create_ics.mpas_init["rundir"] }}/{{ user.mesh_label }}.init.nc'
       #
       # Copy the mesh partitioning file that specifies how the cells in the
       # mesh are distributed (partitioned) among MPI processes.  Note that
