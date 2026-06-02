@@ -534,7 +534,7 @@ if [ -z "${COMPILER}" ] ; then
       ;;
     gaeac6)
       COMPILER=intel
-      MAKE_TARGET=${COMPILER}-mpi-${PLATFORM}
+      MAKE_TARGET=ifort_icx
       ;;
     *)
       COMPILER=intel
