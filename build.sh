@@ -524,6 +524,10 @@ fi
 
 if [ -z "${COMPILER}" ] ; then
   case ${PLATFORM} in
+    gaeac6)
+      COMPILER=intel
+      MAKE_TARGET=${COMPILER}-mpi-${PLATFORM}
+      ;;
     hera)
       COMPILER=intel
       MAKE_TARGET=${COMPILER}-mpi
@@ -532,7 +536,7 @@ if [ -z "${COMPILER}" ] ; then
       COMPILER=intel
       MAKE_TARGET=${COMPILER}
       ;;
-    gaeac6)
+    ursa)
       COMPILER=intel
       MAKE_TARGET=${COMPILER}-mpi-${PLATFORM}
       ;;
