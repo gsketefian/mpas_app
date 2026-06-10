@@ -540,6 +540,11 @@ if [ -z "${COMPILER}" ] ; then
       COMPILER=intel
       MAKE_TARGET=${COMPILER}
       ;;
+    orion)
+      COMPILER=intel
+      #MAKE_TARGET=${COMPILER}-mpi-${PLATFORM}
+      MAKE_TARGET=${COMPILER}-mpi-ursa
+      ;;
     ursa)
       COMPILER=intel
       MAKE_TARGET=${COMPILER}-mpi-${PLATFORM}
