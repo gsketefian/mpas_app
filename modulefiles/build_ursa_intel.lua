@@ -3,7 +3,7 @@ This module loads libraries for building the MPAS App on
 the NOAA RDHPC machine Ursa.
 ]])
 
---whatis([===[Loads libraries for MPAS-Model ]===])
+whatis([===[Loads libraries for MPAS-Model on Ursa]===])
 prepend_path("MODULEPATH", "/contrib/spack-stack/spack-stack-1.9.3/envs/ue-oneapi-2024.2.1/install/modulefiles/Core")
 
 load("stack-oneapi/2024.2.1")
@@ -15,15 +15,11 @@ load("parallelio/2.6.2")
 
 if mode() == "load" then
   setenv("PNETCDF", os.getenv("parallel_netcdf_ROOT"))
---  setenv("NetCDF_C_ROOT", os.getenv("netcdf_c_ROOT"))
---  setenv("NetCDF_FORTRAN_ROOT", os.getenv("netcdf_fortran_ROOT"))
   setenv("NETCDF", os.getenv("netcdf_c_ROOT"))
   setenv("NETCDFF", os.getenv("netcdf_fortran_ROOT"))
 end
 if mode() == "unload" then
   unsetenv("PNETCDF")
---  unsetenv("NetCDF_C_ROOT")
---  unsetenv("NetCDF_FORTRAN_ROOT")
   unsetenv("NETCDF")
   unsetenv("NETCDFF")
 end
