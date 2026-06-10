@@ -526,7 +526,7 @@ if [ -z "${COMPILER}" ] ; then
   case ${PLATFORM} in
     gaeac6)
       COMPILER=intel
-      MAKE_TARGET=${COMPILER}-mpi-${PLATFORM}
+      MAKE_TARGET=ifort_icx
       ;;
     hera)
       COMPILER=intel
