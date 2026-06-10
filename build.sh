@@ -524,6 +524,10 @@ fi
 
 if [ -z "${COMPILER}" ] ; then
   case ${PLATFORM} in
+    derecho)
+      COMPILER=intel
+      MAKE_TARGET=ifort_icx
+      ;;
     gaeac6)
       COMPILER=intel
       MAKE_TARGET=ifort_icx
