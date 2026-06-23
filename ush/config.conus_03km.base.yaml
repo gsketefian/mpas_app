@@ -42,21 +42,42 @@ user:
 ##  build_type: 'debug'
 #  build_type: 'optimized'
   #
+  # Specify physics suite.
+  #
+  # Can't use the hrrrv5 suite because that requires RRFS ICs/LBCs (because
+  # the RUC LSM in the hrrrv5 suite requires the ICs/LBCs to have 9 soil
+  # levels, which the RRFS has but the GFS does not), but the conus_03km
+  # grid extends beyond the RRFS's CONUS domain.  Alternative would be to
+  # use RRFS forecast output files from the whole NA (North America) domain,
+  # but those take too long to download (although it would be ok to do it
+  # only once).
+  #
+  physics_suite: convection_permitting
+  #physics_suite: hrrrv5
+  #
+  # Set the microphysics parameterization based on the physics suite: hrrrv5
+  # uses mp_tempo, convection_permitting uses mp_thompson.
+  #
+  #mp_param: 'mp_thompson'
+  #mp_param: 'mp_thompson_aerosols'
+  #mp_param: 'mp_tempo'
+  #mp_param: 'suite'
+  mp_param: '{%- if user.physics_suite == "hrrrv5" -%}mp_tempo{%- elif user.physics_suite == "convection_permitting" -%}mp_thompson{%- else -%}suite{%- endif -%}'
+  #
   # Settings for external model data from which the initial and boundary
   # conditions (ICs and LBCs) will be generated or (if the ICs and LBCs
   # are staged) were generated.
   #
-  external_model_ics_lbcs: 'GFS'
+  # Note:
+  # We can't use the RRFS as the external model providing data for ICs and LBCs
+  # because the conus_03km domain extends beyond the CONUS subdomain of the
+  # RRFS prslev files that we currently use for generating ICs and LBCs.
+  #
   #external_model_ics_lbcs: 'RRFS'
+  external_model_ics_lbcs: 'GFS'
   #
   external_model_data_store: 'hpss'
   #external_model_data_store: 'aws'
-  #
-  # Microphysics parameterization to use.
-  #
-  #config_mp: 'mp_thompson'
-  #config_mp: 'mp_thompson_aerosols'
-  config_mp: 'mp_tempo'
   #
   workflow_blocks:
     - cold_start.yaml
@@ -83,21 +104,21 @@ auxil:
   #   a tracked file in the TEMPO submodule and is thus immediately available
   #   after MPAS-Model is (recursively) cloned. 
   #
-  mp_table_ccn_activate_symlink: '{%- if user.config_mp == "mp_tempo" -%}ccn_activate.bin{%- elif user.config_mp == "mp_thompson_aerosols" -%}CCN_ACTIVATE_DATA{%- else -%}unused_mp_table_ccn_activate{%- endif -%}'
-  mp_table_qr_acr_qs_symlink: '{%- if user.config_mp == "mp_tempo" -%}qr_acr_qs_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQS_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qs{%- endif -%}'
-  mp_table_qr_acr_qg_symlink: '{%- if user.config_mp == "mp_tempo" -%}qr_acr_qg_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQG_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qg{%- endif -%}'
-  mp_table_qi_aut_qs_symlink: '{%- if user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QIautQS_DATA.DBL{%- else -%}unused_mp_table_qi_aut_qs{%- endif -%}'
-  mp_table_freeze_water_symlink: '{%- if user.config_mp == "mp_tempo" -%}freeze_water_data_tempo_v3{%- elif user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_freezeH2O_DATA.DBL{%- else -%}unused_mp_table_freeze_water{%- endif -%}'
+  mp_table_ccn_activate_symlink: '{%- if user.mp_param == "mp_tempo" -%}ccn_activate.bin{%- elif user.mp_param == "mp_thompson_aerosols" -%}CCN_ACTIVATE_DATA{%- else -%}unused_mp_table_ccn_activate{%- endif -%}'
+  mp_table_qr_acr_qs_symlink: '{%- if user.mp_param == "mp_tempo" -%}qr_acr_qs_data_tempo_v3{%- elif user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQS_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qs{%- endif -%}'
+  mp_table_qr_acr_qg_symlink: '{%- if user.mp_param == "mp_tempo" -%}qr_acr_qg_data_tempo_v3{%- elif user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QRacrQG_DATA.DBL{%- else -%}unused_mp_table_qr_acr_qg{%- endif -%}'
+  mp_table_qi_aut_qs_symlink: '{%- if user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_QIautQS_DATA.DBL{%- else -%}unused_mp_table_qi_aut_qs{%- endif -%}'
+  mp_table_freeze_water_symlink: '{%- if user.mp_param == "mp_tempo" -%}freeze_water_data_tempo_v3{%- elif user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}MP_THOMPSON_freezeH2O_DATA.DBL{%- else -%}unused_mp_table_freeze_water{%- endif -%}'
   #
   # The full paths to the targets that the micophysics symlinks above must
   # point to.  As above, these depend on the microphysics parameterization
   # being used.
   #
-  mp_table_ccn_activate_target: '{%- if user.config_mp == "mp_tempo" -%}{{ auxil.tempo_submodule_dir }}/tables/{{ auxil.mp_table_ccn_activate_symlink }}{%- elif user.config_mp == "mp_thompson_aerosols" -%}{{ auxil.wrf_physics_tables_dir }}/{{ auxil.mp_table_ccn_activate_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qr_acr_qs_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qr_acr_qg_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qg_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_qi_aut_qs_target: '{%- if user.config_mp in ["mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qi_aut_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
-  mp_table_freeze_water_target: '{%- if user.config_mp in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_freeze_water_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_ccn_activate_target: '{%- if user.mp_param == "mp_tempo" -%}{{ auxil.tempo_submodule_dir }}/tables/{{ auxil.mp_table_ccn_activate_symlink }}{%- elif user.mp_param == "mp_thompson_aerosols" -%}{{ auxil.wrf_physics_tables_dir }}/{{ auxil.mp_table_ccn_activate_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qr_acr_qs_target: '{%- if user.mp_param in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qr_acr_qg_target: '{%- if user.mp_param in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qr_acr_qg_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_qi_aut_qs_target: '{%- if user.mp_param in ["mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_qi_aut_qs_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
+  mp_table_freeze_water_target: '{%- if user.mp_param in ["mp_tempo", "mp_thompson", "mp_thompson_aerosols"] -%}{{ auxil.mpas_model_dir }}/{{ auxil.mp_table_freeze_water_symlink }}{%- else -%}{{ auxil.dummy_target }}{%- endif -%}'
   #
   # The variable table to use for ungribbing.
   #
@@ -106,10 +127,10 @@ auxil:
   # Directory in which to save the external model files needed for generating
   # initial and boundary conditions.
   #
-  get_ics_lbcs_rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/{{ user.external_model_ics_lbcs }}'
+  external_model_staging_dir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/{{ user.external_model_ics_lbcs }}'
   #
   # The variable in the init_atmosphere namelist that specifies the initial
-  # guess for the number of levels. It is described in the MPAS-Model code
+  # guess for the number of levels.  It is described in the MPAS-Model code
   # (MPAS-Model/src/core_init_atmosphere/Registry.xml) as:
   #
   #   "The number of atmospheric levels (including surface and sea-level) in
@@ -118,21 +139,57 @@ auxil:
   # Make the default value of this 0 to cause a dramatic crash to ensure
   # it is set correctly for new external models.
   #
-  config_nfglevels: '{%- if user.external_model_ics_lbcs == "GFS" -%}38{%- elif user.external_model_ics_lbcs == "RRFS" -%}46{%- else -%}0{%- endif -%}'
+  # For GFS
+  # -------
+  # The value 38 was inherited from other runs that use GFS external model
+  # files, so we use that value here.
   #
-  # Disable boundary blending for RRFS since the RRFS external model data
-  # doesn't seem to have SOILHGT.
-  # Latest:
-  # This may be because SOILHGT (and other surface fields like LANDSEA)
-  # are not in the forecast files (which have the form
-  # rrfs.t{cycle_hour:02d}z.prslev.3km.f{forecast_hour:03d}.conus.grib2)
-  # but in .init.ics.tar archive files and need to be downloaded separately.
+  # For RRFS
+  # --------
+  # In RRFS prslev GRIB2 files, 3-D fields are given at isobaric (pressure)
+  # levels.  The RRFS ungrib variable table (Vtable.RRFS) uses wildcard level
+  # matching for isobaric levels, so all such levels present in the prslev
+  # GRIB2 file are extracted by ungrib.  For each isobaric level, ungrib sets
+  # xlvl (the level identifier in the WPS intermediate file format) to the
+  # pressure in Pa (e.g. 100000.0 for 1000 hPa), so each pressure level
+  # contributes one unique xlvl value.  The 2m/10m near-surface entries (GRIB2
+  # level type 103 in Vtable.RRFS) add one extra unique level: ungrib sets
+  # xlvl=200100.0 for ALL height-above-ground fields regardless of actual
+  # height, so both 2m and 10m fields share the same xlvl and count as one
+  # level.  The RRFS prslev GRIB2 files contain 45 isobaric levels (as observed
+  # by examining the files using wgrib2) and near-surface variables at two
+  # different height levels (2m and 10m), but since the height levels are
+  # assigned the same xlvl value in the intermediate files, there are a total
+  # of 46 unique xlvl values in those files.
+  #
+  # The init_atmosphere_model executable called by the mpas_ics task reads in
+  # the WPS intermediate files generated by ungrib.  The value specified for
+  # config_nfglevels in the namelist (namelist.init_atmosphere) must strictly
+  # exceed the number of unique xlvl values in the WPS intermediate files to
+  # avoid heap corruption and a subsequent crash towards the end of the call
+  # to init_atmosphere_model.  Any value greater than the actual level count
+  # in the intermediate files can be used and will produce identical results.
+  # That is because init_atmosphere_model computes nfglevels_actual by scanning
+  # for the first unfilled slot in vert_level and uses nfglevels_actual (not
+  # config_nfglevels) for all subsequent computation.  Larger values of
+  # config_nfglevels incur a small memory cost (one extra row per fg pool array
+  # per level).  Here we use 47, which exceeds the observed 46.
+  #
+  config_nfglevels: '{%- if user.external_model_ics_lbcs == "GFS" -%}38{%- elif user.external_model_ics_lbcs == "RRFS" -%}47{%- else -%}0{%- endif -%}'
+  #
+  # Number of soil levels in the external model files.  GFS uses the Noah
+  # LSM with 4 levels while RRFS uses the RUC LSM with 9 soil levels.
+  # Make the default value of this 0 to cause a dramatic crash to ensure
+  # it is set correctly for new external models.
+  #
+  config_nfgsoillevels: '{%- if user.external_model_ics_lbcs == "GFS" -%}4{%- elif user.external_model_ics_lbcs == "RRFS" -%}9{%- else -%}0{%- endif -%}'
   #
   #config_blend_bdy_terrain: '{%- if user.external_model_ics_lbcs == "GFS" -%}true{%- elif user.external_model_ics_lbcs == "RRFS" -%}false{%- else -%}false{%- endif -%}'
   config_blend_bdy_terrain: true
 
 data:
   mesh_files: "/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/mesh_and_static_files"
+  geog_data_path: '{%- if user.physics_suite == "hrrrv5" -%}/scratch4/BMC/fv3lam/Gerard.Ketefian/DTC_WIW/generate_static/mpas_static/{%- else -%}!remove{%- endif -%}'
 
 platform:
   scheduler: slurm
@@ -151,7 +208,10 @@ cron:
   # This will be set by the experiment generation script, so it doesn't matter what it
   # is set to here.  Leave it to its default value.
   crontab_line: None
-
+#
+# Configuration section for retrieving external model data from which to
+# generate initial conditions.
+#
 get_ics_data:
   execution:
     cores: 1
@@ -160,8 +220,11 @@ get_ics_data:
     maxtries: 1
   external_model: '{{ user.external_model_ics_lbcs }}'
   data_stores: '{{ user.external_model_data_store }}'
-  rundir: '{{ auxil.get_ics_lbcs_rundir }}'
-
+  rundir: '{{ auxil.external_model_staging_dir }}'
+#
+# Configuration section for retrieving external model data from which to
+# generate boundary conditions.
+#
 get_lbcs_data:
   execution:
     cores: 1
@@ -170,13 +233,20 @@ get_lbcs_data:
     maxtries: 1
   external_model: '{{ user.external_model_ics_lbcs }}'
   data_stores: '{{ user.external_model_data_store }}'
-  rundir: '{{ auxil.get_ics_lbcs_rundir }}'
-
+  rundir: '{{ auxil.external_model_staging_dir }}'
+#
+# Configuration section for "ungrbbing" the external model data for ICs and
+# LBCs by converting them to WPS (WRF Preprocessing System) "intermediate"
+# files.
+#
 prepare_grib:
   ungrib:
     execution:
       batchargs:
-        cores: 1
+        # RRFS external model files are much larger than the GFS ones and thus
+        # require more memory.  This is done via an increase in the number of
+        # cores.
+        cores: '{%- if user.external_model_ics_lbcs == "GFS" -%}1{%- elif user.external_model_ics_lbcs == "RRFS" -%}20{%- else -%}0{%- endif -%}'
         walltime: 00:15:00
         native: ''
         maxtries: 1
@@ -199,13 +269,16 @@ prepare_grib:
       # to be downloaded.  This is where the external model files are found
       # once this (prepare_grib) task is finished.
       #
-      path: '{{ auxil.get_ics_lbcs_rundir }}/{%- if user.external_model_ics_lbcs == "GFS" -%}gfs.t{cycle_hour:02d}z.pgrb2.0p25.f{forecast_hour:03d}{%- elif user.external_model_ics_lbcs == "RRFS" -%}rrfs.t{cycle_hour:02d}z.prslev.3km.f{forecast_hour:03d}.conus.grib2{%- else -%}file_template_not_specified{%- endif -%}'
+      path: '{{ auxil.external_model_staging_dir }}/{%- if user.external_model_ics_lbcs == "GFS" -%}gfs.t{cycle_hour:02d}z.pgrb2.0p25.f{forecast_hour:03d}{%- elif user.external_model_ics_lbcs == "RRFS" -%}rrfs.t{cycle_hour:02d}z.prslev.3km.f{forecast_hour:03d}.conus.grib2{%- else -%}file_template_not_specified{%- endif -%}'
     rundir: '{{ user.experiment_dir }}/{{cycle.strftime("%Y%m%d%H")}}/ungrib'
     vtable: "{{ auxil.vtable }}"
   platform:
     account: '{{ platform.account }}'
     scheduler: '{{ platform.scheduler }}'
-
+#
+# Generate initial conditions on the MPAS mesh from the WPS intermediate-
+# format file at the initial time.
+#
 create_ics:
   mpas_init: &mpas_init_config
     boundary_conditions:
@@ -266,7 +339,9 @@ create_ics:
           config_init_case: 7
         dimensions:
           config_nfglevels: !int '{{ auxil.config_nfglevels }}'
+          config_nfgsoillevels: !int '{{ auxil.config_nfgsoillevels }}'
         data_sources:
+          config_geog_data_path: '{%- if user.physics_suite == "hrrrv5" -%}{{ data.geog_data_path }}{%- else -%}!remove{%- endif -%}'
           config_fg_interval: !int "{{ create_ics.mpas_init['boundary_conditions']['interval_hours'] * 3600 }}"
           config_met_prefix: FILE
         vertical_grid:
@@ -290,6 +365,15 @@ create_ics:
           config_blend_bdy_terrain: "{{ auxil.config_blend_bdy_terrain }}"
         preproc_stages:
           config_native_gwd_static: false
+          #
+          # Generate the mesh-dependent file "x1.40962.ugwp_oro_data.nc" that the
+          # "bl_ugwp_gwdo" scheme in the hrrrv5 suite needs to read in during the
+          # forecast.  Note that the "x1.40962" in the name of this file is hard-
+          # coded in the MPAS-Model code base even though this file is in fact mesh
+          # dependent and must be generated for each new MPAS mesh.  This naming
+          # convention is likely an oversight.
+          #
+          config_native_gwd_gsl_static: '{%- if user.physics_suite == "hrrrv5" -%}true{%- else -%}false{%- endif -%}'
           config_static_interp: false
         decomposition:
           config_block_decomp_file_prefix: "{{ user.mesh_label }}.graph.info.part."
@@ -309,10 +393,20 @@ create_ics:
         io_type: "pnetcdf,cdf5"
         packages: initial_conds
         clobber_mode: overwrite
+      ugwp_oro_data:
+        filename_template: "x1.40962.ugwp_oro_data.nc"
+        output_interval: initial_only
+        type: output
+        mutable: false
+        packages: gwd_gsl_stage_out
   platform:
     account: '{{ platform.account }}'
     scheduler: '{{ platform.scheduler }}'
-
+#
+# Generate lateral boundary conditions along the edges of the MPAS mesh
+# from the WPS intermediate-format files at the various boundary-update
+# times.
+#
 create_lbcs:
   mpas_init:
     <<: *mpas_init_config
@@ -334,24 +428,26 @@ create_lbcs:
         mutable: false
         io_type: "pnetcdf,cdf5"
       surface:
-        filename_template: x1.40962.sfc_update.nc
+        mutable: false
         type: output
+        filename_template: "{{ user.mesh_label }}.sfc_update.nc"
         filename_interval: "none"
-        packages: sfc_update
         output_interval: "1_00:00:00"
+        packages: sfc_update
         clobber_mode: overwrite
-        mutable: false
       lbc:
-        type: output
-        filename_template: lbc.$Y-$M-$D_$h.$m.$s.nc
-        filename_interval: output_interval
-        packages: lbcs
-        output_interval: 06:00:00
         mutable: false
+        type: output
+        filename_template: "lbc.$Y-$M-$D_$h.$m.$s.nc"
+        filename_interval: "output_interval"
+        output_interval: 06:00:00
+        packages: lbcs
   platform:
     account: '{{ platform.account }}'
     scheduler: '{{ platform.scheduler }}'
-
+#
+# Run forecast(s).
+#
 forecast:
   mpas:
     execution:
@@ -395,7 +491,7 @@ forecast:
       #
       # The initial conditions file.
       #
-      "{{ user.mesh_label }}.init.nc": "{{ create_ics.mpas_init['rundir'] }}/{{ user.mesh_label }}.init.nc"
+      '{{ user.mesh_label }}.init.nc': '{{ create_ics.mpas_init["rundir"] }}/{{ user.mesh_label }}.init.nc'
       #
       # Copy the mesh partitioning file that specifies how the cells in the
       # mesh are distributed (partitioned) among MPI processes.  Note that
@@ -408,6 +504,34 @@ forecast:
       stream_list.atmosphere.surface: "{{ user.mpas_app }}/parm/mpas/stream_list.atmosphere.surface"
     files_to_link:
       <<: *mpas_init_files_to_link
+      #
+      # The hrrrv5 suite uses the Unified Gravity Wave Physics (UGWP) scheme, which
+      # is named "bl_ugwp_gwdo" in MPAS.  In "bl_ugwp_gwdo", the "bl" stands for
+      # "boundary layer" (even though the UGWP operates throughout the column, not
+      # just in the boundary layer), and "gwdo" stands for "Gravity Wave Drag
+      # Orographic".  This scheme has two components, each needing one file:
+      #
+      # 1) Orographic gravity wave drag
+      #    This component has a stream named "ugwp_orog_stream" that reads in
+      #    the file "x1.40962.ugwp_oro_data.nc".  Note that the "40962" in the
+      #    name of this file is hard-coded (probably inadvertently) even though
+      #    the file itself is mesh-dependent and must be recomputed for a new
+      #    MPAS mesh.  We cannot change the name here as it is hard-coded in
+      #    the MPAS-Model code.  This file is generated by the init_atmosphere_model
+      #    executable whenever config_native_gwd_gsl_static in namelist.init_atmosphere
+      #    is set to "true".
+      #
+      # 2) Non-orographic gravity wave drag
+      #    This component has a stream named "ugwp_ngw_stream" that reads in the
+      #    file "ugwp_limb_tau.nc".  The "ngw" in "ugwp_ngw_stream" stands for
+      #    "non-orographic gravity wave".  The file "ugwp_limb_tau.nc" is retrieved
+      #    along with other WRF Physics lookup tables during the make/build of 
+      #    MPAS-Model.
+      #
+      # Create symlinks to these two files.
+      #
+      x1.40962.ugwp_oro_data.nc: '{%- if user.physics_suite == "hrrrv5" -%}{{ create_ics.mpas_init["rundir"] }}/x1.40962.ugwp_oro_data.nc{%- else -%}!remove{%- endif -%}'
+      ugwp_limb_tau.nc: '{%- if user.physics_suite == "hrrrv5" -%}{{ auxil.wrf_physics_tables_dir }}/ugwp_limb_tau.nc{%- else -%}!remove{%- endif -%}'
     #
     # If the lateral_boundary_conditions: key is present here (i.e. we do not
     # "!remove" it), the boundary_files method in the mpas.py script of uwtools
@@ -450,22 +574,21 @@ forecast:
       base_file: "{{ auxil.mpas_model_dir }}/namelist.atmosphere"
       update_values:
         nhyd_model:
-#          config_dt: 10.0
           config_dt: 15.0
         limited_area:
           config_apply_lbcs: true
         decomposition:
           config_block_decomp_file_prefix: "{{ user.mesh_label }}.graph.info.part."
         physics:
-          config_physics_suite: convection_permitting
-          config_microp_scheme: '{{ user.config_mp }}'
+          config_physics_suite: '{{ user.physics_suite }}'
+          config_microp_scheme: '{{ user.mp_param }}'
         #
         # Ideally, we would !remove the physics_mp_tempo namelist from the namelist
         # file when the microphysics used is not TEMPO.  But that doesn't seem to
         # work, so we simply leave it in since it's not used when the microphysics
         # isn't TEMPO.
         #
-        #physics_mp_tempo: '{%- if user.config_mp != "mp_tempo" -%}!remove{%- endif -%}'
+        #physics_mp_tempo: '{%- if user.mp_param != "mp_tempo" -%}!remove{%- endif -%}'
         physics_mp_tempo:
           config_tempo_hailaware: True
     rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/forecast'
