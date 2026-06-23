@@ -538,7 +538,7 @@ if [ -z "${COMPILER}" ] ; then
       ;;
     hercules)
       COMPILER=intel
-      MAKE_TARGET=${COMPILER}
+      MAKE_TARGET=${COMPILER}-mpi-ursa
       ;;
     orion)
       COMPILER=intel
