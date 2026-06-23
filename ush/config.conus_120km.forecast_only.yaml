@@ -76,9 +76,6 @@ user:
   #external_model_ics_lbcs: 'RRFS'
   external_model_ics_lbcs: 'GFS'
   #
-  external_model_data_store: 'hpss'
-  #external_model_data_store: 'aws'
-  #
   workflow_blocks:
     - cold_start_staged_ics_lbcs.yaml
 
