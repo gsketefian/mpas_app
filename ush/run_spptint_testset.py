@@ -26,6 +26,26 @@ def run_spptint_testset(mpas_config, spptint_vals, num_runs):
     stochy_nml_defaults_fn = 'config.modify_nml.nam_stochy.sppt_with_defaults.yaml'
     custom_cfg_tmpl_fn = 'config.template.sppt_pat1_only.yaml'
 
+    # Set the seed of the first SPPT pattern.  This needs to be a string consisting
+    # only of digits of the form 'YYYYMMDDHHNN1', where YYYYMMDDHH is the start
+    # time of the forecast, NN is the 2-digit memeber number (here just set to '00'
+    # since there are no member to speak of; we're really just doing a deterministic
+    # forecast), and the '1' at the end is the identifier for SPPT (as opposed to
+    # say '2' for SKEB, etc).  Thus, we need the initialization (start) time of the
+    # forecast.  We get this by reading in the base configuration file.  Note that
+    # the result will be a dictionary containing unrendered jinja2 variable references
+    # and other statements, but that is ok because we only need the forecast init
+    # time, which is not a jinja2 statement.
+    base_cfg_unrendered = uwconfig.get_yaml_config(base_cfg_fn)
+    first_cycle = base_cfg_unrendered['user']['first_cycle']
+    YYYYMMDDHH_init = first_cycle.strftime("%Y%m%d%H")
+    ens_mem_2digit = '00'
+    sppt_identifier = '1'
+    iseed_1 = YYYYMMDDHH_init + ens_mem_2digit + sppt_identifier
+    # The string 'str:' is needed at the beginning so that experiment_gen.py does not
+    # convert iseed_1 to an integer.
+    iseed_1 = 'str:' + iseed_1
+
     num_repeat_chars = 56
     print(f'')
     print(f'*' * num_repeat_chars)
@@ -74,6 +94,7 @@ def run_spptint_testset(mpas_config, spptint_vals, num_runs):
             custom_cfg['forecast']['mpas']['namelist']['update_values']['nam_stochy']['do_sppt'] = dosppt
             custom_cfg['forecast']['mpas']['namelist']['update_values']['nam_stochy']['config_spptint'] = spptint
             custom_cfg['forecast']['mpas']['namelist']['update_values']['nam_stochy']['config_sppt_lscale_1'] = lscale_1
+            custom_cfg['forecast']['mpas']['namelist']['update_values']['nam_stochy']['config_iseed_sppt1'] = iseed_1
 
             if dosppt:
                 expt_basename = ''.join(['sppt_pat1_only_', lscale1_km_str, '_spptint_', f'{spptint:04d}', 'sec'])
