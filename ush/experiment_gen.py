@@ -43,6 +43,9 @@ def _fix_types(obj) -> None:
                     obj[k] = False
                 elif v == '!remove':
                     keys_to_remove.append(k)
+                elif v.startswith('str:'):
+                    obj[k] = v[4:]          # strip the prefix, keep as string
+                # Remove any minus signs before checking if v consists of digits only.
                 elif v.lstrip('-').isdigit():
                     obj[k] = int(v)
             else:

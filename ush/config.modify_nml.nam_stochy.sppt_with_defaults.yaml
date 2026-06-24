@@ -17,9 +17,12 @@ forecast:
           config_sppt_lscale_3: 2000000
           config_sppt_logit: true
           config_sppt_sfclimit: true
-          config_iseed_sppt1: 3
-          config_iseed_sppt2: 0
-          config_iseed_sppt3: 0
+          # The 'str:' at the beginning of these is needed so that experiment_gen.py
+          # doesn't automatically convert these two integers; they need to be passed
+          # as strings in the final namelist.
+          config_iseed_sppt1: 'str:2026010112001'
+          config_iseed_sppt2: 'str:0'
+          config_iseed_sppt3: 'str:0'
           config_sppt_hgt_top1: 15000
           config_sppt_hgt_top2: 27000
           config_stochini: false
