@@ -70,7 +70,7 @@ def run_spptint_testset(mpas_config, spptint_vals, num_runs):
         print(f'=' * num_repeat_chars)
         print(f'{dosppt = }')
         print(f'{spptint = } sec')
-        print(f'{lscale_1 = } km')
+        print(f'{lscale1_km_int = } km')
 
         for nrun in range(1,num_runs+1):
             print(f'')
@@ -151,7 +151,8 @@ if __name__ == "__main__":
            'num_cores': 1,
            #'num_cores': 2,
            #'num_cores': 32,
-           'lscale_1': 450000,
+#           'lscale_1': 450000,
+           'lscale_1': 1000000,
           }
 
     # MPAS basic model configuration for the CONUS 15km mesh.
@@ -161,7 +162,8 @@ if __name__ == "__main__":
            'fcst_len': 6,
            'num_cores': 80,
 #           'lscale_1': 50000,
-           'lscale_1': 150000,
+#           'lscale_1': 150000,
+           'lscale_1': 750000,
           }
 
     # MPAS basic model configuration for the CONUS 3km mesh.
@@ -173,24 +175,26 @@ if __name__ == "__main__":
            'lscale_1': 150000,
           }
 
-    mpas_config = mpas_config_conus120km
+#    mpas_config = mpas_config_conus120km
 #    mpas_config = mpas_config_conus15km
-#    mpas_config = mpas_config_conus03km
+    mpas_config = mpas_config_conus03km
 
     # Set the spptint values for which to run the MPAS model.  A negative
     # value of spptint means SPPT is turned off completely (so that the
     # value of spptint is irrelevant).
-#    spptint_vals = [-1, 0, 60, 120, 600, 7200]
+    spptint_vals = [-1, 0, 60, 120, 600, 3600, 7200]
 #    spptint_vals = [-1, 0, 120, 600, 7200]
+#    spptint_vals = [-1, 0, 60]
+#    spptint_vals = [-1, 0, 600]
 #    spptint_vals = [-1, 60]
 #    spptint_vals = [60]
-    spptint_vals = [0]
+#    spptint_vals = [0]
 #    spptint_vals = [-1]
 
     # Set number of identical runs to make for each value of spptint.  This is
     # to get a statistically significant sample.
     num_runs = 10
-    num_runs = 1
+#    num_runs = 1
 #    num_runs = 2
 
     # Run the specified MPAS configuration for the given spptint values and number of runs.
