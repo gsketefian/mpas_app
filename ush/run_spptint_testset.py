@@ -175,26 +175,26 @@ if __name__ == "__main__":
            'lscale_1': 150000,
           }
 
-#    mpas_config = mpas_config_conus120km
+    mpas_config = mpas_config_conus120km
 #    mpas_config = mpas_config_conus15km
-    mpas_config = mpas_config_conus03km
+#    mpas_config = mpas_config_conus03km
 
     # Set the spptint values for which to run the MPAS model.  A negative
     # value of spptint means SPPT is turned off completely (so that the
     # value of spptint is irrelevant).
-    spptint_vals = [-1, 0, 60, 120, 600, 3600, 7200]
+#    spptint_vals = [-1, 0, 60, 120, 600, 3600, 7200]
 #    spptint_vals = [-1, 0, 120, 600, 7200]
 #    spptint_vals = [-1, 0, 60]
 #    spptint_vals = [-1, 0, 600]
 #    spptint_vals = [-1, 60]
-#    spptint_vals = [60]
+    spptint_vals = [60]
 #    spptint_vals = [0]
 #    spptint_vals = [-1]
 
     # Set number of identical runs to make for each value of spptint.  This is
     # to get a statistically significant sample.
-    num_runs = 10
-#    num_runs = 1
+#    num_runs = 10
+    num_runs = 1
 #    num_runs = 2
 
     # Run the specified MPAS configuration for the given spptint values and number of runs.
