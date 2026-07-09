@@ -60,8 +60,8 @@ user:
   # conditions (ICs and LBCs) will be generated or (if the ICs and LBCs
   # are staged) were generated.
   #
-  #external_model_ics_lbcs: 'GFS'
   external_model_ics_lbcs: 'RRFS'
+  #external_model_ics_lbcs: 'GFS'
   #
   #
   workflow_blocks:
@@ -154,6 +154,11 @@ prepare_grib: !remove
 # format file at the initial time.
 #
 create_ics: !remove
+#
+# Generate lateral boundary conditions along the edges of the MPAS mesh
+# from the WPS intermediate-format files at the various boundary-update
+# times.
+#
 create_lbcs: !remove
 
 #
@@ -166,7 +171,9 @@ workflow:
     task_ungrib: !remove
     task_mpas_ics: !remove
     task_mpas_lbcs: !remove
-
+#
+# Run forecast(s).
+#
 forecast:
   mpas:
     execution:

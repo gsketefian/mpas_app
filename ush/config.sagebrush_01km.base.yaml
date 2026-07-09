@@ -60,8 +60,8 @@ user:
   # conditions (ICs and LBCs) will be generated or (if the ICs and LBCs
   # are staged) were generated.
   #
-  #external_model_ics_lbcs: 'GFS'
   external_model_ics_lbcs: 'RRFS'
+  #external_model_ics_lbcs: 'GFS'
   #
   external_model_data_store: 'hpss'
   #external_model_data_store: 'aws'
@@ -202,7 +202,7 @@ cron:
 get_ics_data:
   execution:
     cores: 1
-    walltime: 00:10:00
+    walltime: '{%- if user.external_model_ics_lbcs == "GFS" -%}00:20:00{%- elif user.external_model_ics_lbcs == "RRFS" -%}01:00:00{%- else -%}0{%- endif -%}'
     native: ''
     maxtries: 1
   external_model: '{{ user.external_model_ics_lbcs }}'
@@ -215,7 +215,7 @@ get_ics_data:
 get_lbcs_data:
   execution:
     cores: 1
-    walltime: 00:20:00
+    walltime: '{%- if user.external_model_ics_lbcs == "GFS" -%}00:20:00{%- elif user.external_model_ics_lbcs == "RRFS" -%}01:00:00{%- else -%}0{%- endif -%}'
     native: ''
     maxtries: 1
   external_model: '{{ user.external_model_ics_lbcs }}'
