@@ -444,7 +444,7 @@ forecast:
         # On Hera, for a 6-hr forecast with config_dt = 0.333... sec and output
         # every hour:
         #
-        # - With 400 cores, the forecast takes about ???? seconds (??? minutes).
+        # - With 400 cores, the forecast takes about 5634 seconds (1 hr 34 min).
         # - With 800 cores, the forecast takes about 4650 seconds (1 hr 17 min).
         # - With 1600 cores, the forecast takes about ???? seconds (??? minutes).
         #
