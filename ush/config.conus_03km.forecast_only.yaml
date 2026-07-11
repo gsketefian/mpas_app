@@ -125,8 +125,8 @@ data:
 platform:
   scheduler: slurm
 #  account: fv3lam
-#  account: zrtrr
-  account: rtrr
+  account: zrtrr
+#  account: rtrr
 
 wflow_launch:
   launch_script_fn: 'launch_wflow.py'
