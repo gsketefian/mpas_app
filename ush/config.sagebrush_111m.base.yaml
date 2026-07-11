@@ -444,13 +444,13 @@ forecast:
         # On Hera, for a 6-hr forecast with config_dt = 0.111... sec and output
         # every hour:
         #
-        # - With 3600 cores, the forecast takes about ???? seconds (??? minutes).
+        # - With 1800 cores, the forecast takes about ???? seconds (??? minutes).
+        # - With 3600 cores, the forecast takes about 11942 seconds (3 hr 19 min).
         # - With 7200 cores, the forecast takes about 11586 seconds (3 hr 13 min).
-        # - With 14400 cores, the forecast takes about ???? seconds (??? minutes).
         #
+        cores: 1800
 #        cores: 3600
-        cores: 7200
-#        cores: 14400
+#        cores: 7200
         walltime: 04:00:00
         native: '--exclusive'
         maxtries: 1
