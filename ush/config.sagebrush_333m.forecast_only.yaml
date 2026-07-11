@@ -113,8 +113,8 @@ data:
 platform:
   scheduler: slurm
 #  account: fv3lam
-#  account: zrtrr
-  account: rtrr
+  account: zrtrr
+#  account: rtrr
 
 wflow_launch:
   launch_script_fn: 'launch_wflow.py'
@@ -184,10 +184,10 @@ forecast:
         #
         # - With 400 cores, the forecast takes about 5634 seconds (1 hr 34 min).
         # - With 800 cores, the forecast takes about 4650 seconds (1 hr 17 min).
-        # - With 1600 cores, the forecast takes about ???? seconds (??? minutes).
+        # - With 1600 cores, the forecast takes about 4119 seconds (1 hr 8 min).
         #
-#        cores: 400
-        cores: 800
+        cores: 400
+#        cores: 800
 #        cores: 1600
         walltime: 02:00:00
         native: '--exclusive'
