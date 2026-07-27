@@ -188,8 +188,8 @@ if __name__ == "__main__":
 #    spptint_vals = [-1, 0, 600]
 #    spptint_vals = [-1, 60]
 #    spptint_vals = [60]
-#    spptint_vals = [-1, 0]
-    spptint_vals = [0]
+    spptint_vals = [-1, 0]
+#    spptint_vals = [0]
 #    spptint_vals = [-1]
 
     # Set number of identical runs to make for each value of spptint.  This is
